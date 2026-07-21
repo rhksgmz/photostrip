@@ -1,15 +1,81 @@
-/* 🎯 關鍵修復：原版 EXO 科技金屬感字體與雙層發光 */
-h1.exo-title {
-  width: 100%;
-  text-align: center;
-  font-family: 'Orbitron', -apple-system, sans-serif !important;
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
-  color: #ffffff;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
-              0 0 20px rgba(99, 102, 241, 0.9),
-              0 0 30px rgba(56, 189, 248, 0.5);
+/* =========================================================
+   3. 拍貼框圖層 (500*345 像素比例 + 精準 0.5cm 間距)
+   ========================================================= */
+#photo-strip {
+  position: relative;
+  width: 240px;
+  height: 720px;
+  background-color: #000;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+.photo-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+/* 🎯 精確像素：寬度 200px，高度 138px (完全對應 500*345 比例) */
+.photo-frame {
+  position: absolute;
+  left: 20px;
+  width: 200px;
+  height: 138px;
+  background-color: #111;
+  overflow: hidden;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-frame canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: filter 0.3s ease;
+}
+
+/* ---------------------------------------------------------
+   🎯 精密固定座標 (間距固定 14px ≒ 0.5 公分)
+   --------------------------------------------------------- */
+/* 第 1 張照片 */
+.photo-frame:nth-child(1) {
+  top: 40px;
+}
+
+/* 第 2 張照片 */
+.photo-frame:nth-child(2) {
+  top: 192px;
+}
+
+/* 第 3 張照片 */
+.photo-frame:nth-child(3) {
+  top: 344px;
+}
+
+/* 第 4 張照片 (底部位於 634px，完美落在 720px 內並留下底部 LOGO 空間) */
+.photo-frame:nth-child(4) {
+  top: 496px;
+}
+
+#frame-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: fill;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#final-result-img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 10;
+  object-fit: fill;
+  cursor: pointer;
 }
