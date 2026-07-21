@@ -1,0 +1,212 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #2b2e38;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  background: #1f2128;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  max-width: 950px;
+  width: 100%;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.controls-panel, .preview-panel {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 相機畫面 */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #3a3f50;
+}
+
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* 鏡像翻轉，拍照更自然 */
+}
+
+#countdown-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 90px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+/* 按鈕樣式 */
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary { background: #ff8c00; color: white; }
+.btn.primary:hover:not(:disabled) { background: #ffa500; }
+.btn.secondary { background: #3a3f50; color: white; }
+.btn.success { background: #00b894; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
+.btn.success:hover:not(:disabled) { background: #00cec9; }
+
+/* 選擇相框選單 */
+.frame-picker-container {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.frame-picker-container label {
+  font-size: 14px;
+  color: #bbb;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.frame-options {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.frame-card {
+  flex: 1;
+  background: #2b2e38;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.frame-card span {
+  font-size: 11px;
+  display: block;
+  margin-top: 6px;
+  color: #ccc;
+}
+
+.frame-card.active {
+  border-color: #ff8c00;
+  background: #343846;
+}
+
+.frame-preview {
+  height: 40px;
+  border-radius: 4px;
+}
+.warm-bg { background: #fbe3d5; }
+.cool-bg { background: #1c2e4a; }
+.white-bg { background: #ffffff; }
+
+/* 拍貼輸出區域 (相框重點) */
+.strip-container {
+  position: relative;
+  width: 240px;
+  height: 720px; /* 依照四格拍貼長條比例 */
+  background-color: #000;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+/* 照片佈局（放在下層） */
+.photos-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4% 6% 18% 6%; /* 調整照片區域以對齊框內孔洞 */
+  z-index: 1;
+}
+
+.photo-slot {
+  width: 100%;
+  height: 22%;
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.photo-slot canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 覆蓋在最上層的外框圖 */
+#frame-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none; /* 讓點擊穿透 */
+  object-fit: fill;
+  /* 魔法：將框圖片中的黑色挖空，露出後方的照片！ */
+  mix-blend-mode: screen; 
+}
+
+/* 無相框時的預設簡約白框 */
+.strip-container.frame-none {
+  background: #fff;
+}
+.strip-container.frame-none #frame-overlay {
+  display: none;
+}
+.strip-container.frame-none .photo-slot {
+  border-radius: 0;
+}

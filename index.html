@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EXO-L 專屬四格拍貼機</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📸 EXO-L 四格拍貼機</h1>
+    
+    <!-- 左側：相機與控制區 -->
+    <div class="controls-panel">
+      <!-- 相機即時預覽區 -->
+      <div class="camera-container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <div id="countdown-overlay"></div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="buttons">
+        <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
+        <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+      </div>
+
+      <!-- 外框選擇區 -->
+      <div class="frame-picker-container">
+        <label>選擇專屬相框：</label>
+        <div class="frame-options">
+          <div class="frame-card active" data-frame="warm">
+            <div class="frame-preview warm-bg"></div>
+            <span>EXHorizon 高雄場 (暖色)</span>
+          </div>
+          <div class="frame-card" data-frame="cool">
+            <div class="frame-preview cool-bg"></div>
+            <span>EXHorizon 台北/高雄 (銀河藍)</span>
+          </div>
+          <div class="frame-card" data-frame="none">
+            <div class="frame-preview white-bg"></div>
+            <span>純白簡約框</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="download-btn" class="btn success" disabled>下載拍貼作品 💾</button>
+    </div>
+
+    <!-- 右側：四格照片預覽區 (實際相框區) -->
+    <div class="preview-panel">
+      <div id="photo-strip" class="strip-container frame-warm-active">
+        <!-- 拍攝的照片畫布 (4張) -->
+        <div class="photos-layer">
+          <div class="photo-slot"><canvas id="canvas1"></canvas></div>
+          <div class="photo-slot"><canvas id="canvas2"></canvas></div>
+          <div class="photo-slot"><canvas id="canvas3"></canvas></div>
+          <div class="photo-slot"><canvas id="canvas4"></canvas></div>
+        </div>
+
+        <!-- 覆蓋在照片上面的外框遮罩圖片 -->
+        <img id="frame-overlay" src="frame_warm.png" alt="相框遮罩">
+      </div>
+    </div>
+  </div>
+
+  <!-- html2canvas 用於匯出完整相片 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
