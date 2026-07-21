@@ -6,6 +6,7 @@ const countdownOverlay = document.getElementById('countdown-overlay');
 
 const photoStrip = document.getElementById('photo-strip');
 const frameOverlay = document.getElementById('frame-overlay');
+const finalResultImg = document.getElementById('final-result-img');
 const frameOptions = document.querySelectorAll('.frame-option');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
@@ -38,7 +39,7 @@ navigator.mediaDevices.getUserMedia({
 .then(stream => { webcam.srcObject = stream; })
 .catch(err => { alert("無法開啟相機，請確認已授權權限！"); });
 
-// 2. 濾鏡切換
+// 2. 切換濾鏡
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -51,10 +52,15 @@ filterBtns.forEach(btn => {
     canvases.forEach(canvas => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
     });
+
+    // 如果已經拍照完成，更新最終可長按的圖片
+    if (finalResultImg.style.display === 'block') {
+      generateFinalImage();
+    }
   });
 });
 
-// 3. 相框切換
+// 3. 切換相框
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     document.querySelector('.frame-option.active').classList.remove('active');
@@ -62,6 +68,11 @@ frameOptions.forEach(option => {
 
     const selectedFrame = e.currentTarget.getAttribute('data-frame');
     frameOverlay.src = frameSources[selectedFrame];
+
+    // 如果已經拍照完成，更新最終可長按的圖片
+    if (finalResultImg.style.display === 'block') {
+      setTimeout(generateFinalImage, 100);
+    }
   });
 });
 
@@ -70,11 +81,15 @@ async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
+  finalResultImg.style.display = 'none'; // 隱藏舊的結果圖
 
   for (let i = 0; i < 4; i++) {
     await countdown(3);
     takePhoto(canvases[i]);
   }
+
+  // 拍照完畢：合成最終影像供「長按下載」
+  generateFinalImage();
 
   startBtn.disabled = false;
   retakeBtn.disabled = false;
@@ -99,11 +114,9 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 核心修復：精確裁切畫面，防止照片變形與壓縮！
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   
-  // 將 Canvas 尺寸設為拍貼框孔洞的實際渲染比例 (500x345 比例)
   const targetWidth = 500;
   const targetHeight = 345;
   canvas.width = targetWidth;
@@ -112,7 +125,6 @@ function takePhoto(canvas) {
   const vWidth = webcam.videoWidth;
   const vHeight = webcam.videoHeight;
 
-  // 計算以 cover 方式裁切 Webcam 影像的長寬
   const videoAspect = vWidth / vHeight;
   const targetAspect = targetWidth / targetHeight;
 
@@ -130,10 +142,7 @@ function takePhoto(canvas) {
     sy = (vHeight - sHeight) / 2;
   }
 
-  // 套用濾鏡
   ctx.filter = filterCanvasMap[currentFilterKey];
-
-  // 鏡像翻轉並進行 Cover 裁切繪製
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
@@ -141,27 +150,37 @@ function takePhoto(canvas) {
   canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
-// 5. 重拍
-retakeBtn.addEventListener('click', () => {
-  canvases.forEach(canvas => {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-  downloadBtn.disabled = true;
-});
-
-// 6. 下載作品
-downloadBtn.addEventListener('click', () => {
+// 🎯 自動生成供手機「直接長按儲存」的高清圖片
+function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `EXO_PhotoStrip_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    const dataUrl = canvas.toDataURL('image/png');
+    finalResultImg.src = dataUrl;
+    finalResultImg.style.display = 'block'; // 顯現於最上層供長按儲存
   });
+}
+
+// 5. 重新拍照
+retakeBtn.addEventListener('click', () => {
+  canvases.forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+  finalResultImg.style.display = 'none';
+  downloadBtn.disabled = true;
+});
+
+// 6. 下載按鈕 (同樣觸發圖片下載)
+downloadBtn.addEventListener('click', () => {
+  if (finalResultImg.src) {
+    const link = document.createElement('a');
+    link.download = `EXhOrizon_${Date.now()}.png`;
+    link.href = finalResultImg.src;
+    link.click();
+  }
 });
 
 startBtn.addEventListener('click', startPhotography);

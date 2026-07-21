@@ -3,12 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EXO-L 韓式四格拍貼機</title>
+  <title>EXhOrizon in Kaohsiung</title>
+  <!-- 載入專屬科技金屬感字體 Orbitron -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>✨ EXO-L 韓式四格拍貼機 ✨</h1>
+    <!-- 修改標題為指定文字 -->
+    <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
     <!-- 左側：相機與控制區 -->
     <div class="controls-panel">
@@ -47,7 +52,7 @@
         </div>
       </div>
 
-      <button id="download-btn" class="btn success" disabled>下載拍貼作品 💾</button>
+      <button id="download-btn" class="btn success" disabled>下載 / 長按儲存作品 💾</button>
     </div>
 
     <!-- 右側：四格照片預覽區 -->
@@ -63,6 +68,9 @@
 
         <!-- 上層：PNG 相框遮罩 -->
         <img id="frame-overlay" src="frame_warm.png" alt="相框">
+
+        <!-- 拍照完成後會自動產生這張透明 img，讓手機可以直接長按儲存 -->
+        <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
       </div>
     </div>
   </div>
