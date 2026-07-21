@@ -1,13 +1,16 @@
+/* =========================================================
+   1. 全域與基礎版面樣式
+   ========================================================= */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background-color: #2b2e38;
-  color: #fff;
+  background-color: #1a1a24;
+  color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -19,7 +22,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 30px;
-  background: #1f2128;
+  background: #242530;
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -43,7 +46,9 @@ h1 {
   align-items: center;
 }
 
-/* 相機畫面 */
+/* =========================================================
+   2. 控制面板與即時鏡頭
+   ========================================================= */
 .camera-container {
   position: relative;
   width: 100%;
@@ -58,7 +63,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1); /* 鏡像翻轉，拍照更自然 */
+  transform: scaleX(-1); /* 鏡像畫面 */
 }
 
 #countdown-overlay {
@@ -72,7 +77,6 @@ h1 {
   text-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
 
-/* 按鈕樣式 */
 .buttons {
   margin-top: 15px;
   display: flex;
@@ -86,127 +90,187 @@ h1 {
   border: none;
   border-radius: 8px;
   font-weight: bold;
-  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: #ff8c00; color: white; }
-.btn.primary:hover:not(:disabled) { background: #ffa500; }
 .btn.secondary { background: #3a3f50; color: white; }
 .btn.success { background: #00b894; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
-.btn.success:hover:not(:disabled) { background: #00cec9; }
 
-/* 選擇相框選單 */
-.frame-picker-container {
+/* 相框選擇卡片 */
+.frame-picker {
   margin-top: 20px;
   width: 100%;
 }
 
-.frame-picker-container label {
+.frame-picker label {
   font-size: 14px;
   color: #bbb;
-  display: block;
   margin-bottom: 8px;
+  display: block;
 }
 
-.frame-options {
+.frames {
   display: flex;
   gap: 10px;
-  justify-content: space-between;
 }
 
-.frame-card {
+.frame-option {
   flex: 1;
-  background: #2b2e38;
-  padding: 8px;
-  border-radius: 8px;
+  height: 70px;
+  background: #1a1a24;
   border: 2px solid transparent;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-}
-
-.frame-card span {
-  font-size: 11px;
-  display: block;
-  margin-top: 6px;
-  color: #ccc;
-}
-
-.frame-card.active {
-  border-color: #ff8c00;
-  background: #343846;
-}
-
-.frame-preview {
-  height: 40px;
-  border-radius: 4px;
-}
-.warm-bg { background: #fbe3d5; }
-.cool-bg { background: #1c2e4a; }
-.white-bg { background: #ffffff; }
-
-/* 拍貼輸出區域 (相框重點) */
-.strip-container {
-  position: relative;
-  width: 240px;
-  height: 720px; /* 依照四格拍貼長條比例 */
-  background-color: #000;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  overflow: hidden;
-}
-
-/* 照片佈局（放在下層） */
-.photos-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 4% 6% 18% 6%; /* 調整照片區域以對齊框內孔洞 */
-  z-index: 1;
-}
-
-.photo-slot {
-  width: 100%;
-  height: 22%;
-  background: #111;
   border-radius: 8px;
+  cursor: pointer;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: 0.2s;
 }
 
-.photo-slot canvas {
+.frame-option img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* 覆蓋在最上層的外框圖 */
+.frame-option.active {
+  border-color: #ff8c00;
+}
+
+/* =========================================================
+   3. 核心拍貼圖層架構 (照片在下，相框在上)
+   ========================================================= */
+#photo-strip {
+  position: relative;
+  width: 240px;
+  height: 720px; /* 長條拍貼比例 */
+  background-color: #000;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* 下層：照片放置區 (z-index: 1) */
+.photo-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.photo-frame {
+  position: absolute;
+  overflow: hidden;
+  background-color: #111; /* 未拍攝時的預設底色 */
+}
+
+.photo-frame canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 上層：相框遮罩圖片 (z-index: 2) */
 #frame-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
-  pointer-events: none; /* 讓點擊穿透 */
   object-fit: fill;
-  /* 魔法：將框圖片中的黑色挖空，露出後方的照片！ */
+  z-index: 2; /* 確保相框覆蓋在照片上方 */
+  pointer-events: none;
+  
+  /* 關鍵技術：濾色模式。這會把相框圖片中的黑色孔洞直接轉為透明，
+     保留最上面的手繪塗鴉與文字，同時透出底層的照片！ */
   mix-blend-mode: screen; 
 }
 
-/* 無相框時的預設簡約白框 */
-.strip-container.frame-none {
-  background: #fff;
+/* =========================================================
+   4. 🎯 各相框 4 張照片的精準絕對座標定位 (重點修正)
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   [相框 A] EXO_2.jpg - 暖色手繪異形框 (對應 class: frame-warm-active)
+   --------------------------------------------------------- */
+#photo-strip.frame-warm-active .photo-frame:nth-child(1) {
+  top: 10.2%; left: 7.5%; width: 85%; height: 16.2%; border-radius: 40% 40% 45% 45%;
 }
-.strip-container.frame-none #frame-overlay {
-  display: none;
+#photo-strip.frame-warm-active .photo-frame:nth-child(2) {
+  top: 27.2%; left: 10%; width: 80%; height: 15.8%; border-radius: 45%;
 }
-.strip-container.frame-none .photo-slot {
+#photo-strip.frame-warm-active .photo-frame:nth-child(3) {
+  top: 44.2%; left: 7.5%; width: 85%; height: 15.8%; border-radius: 42%;
+}
+#photo-strip.frame-warm-active .photo-frame:nth-child(4) {
+  top: 61.2%; left: 12%; width: 76%; height: 14.0%; border-radius: 50%;
+}
+
+/* ---------------------------------------------------------
+   [相框 B] EXO_1.jpg - 銀河藍色圓角框 (對應 class: frame-cool-active)
+   --------------------------------------------------------- */
+#photo-strip.frame-cool-active .photo-frame:nth-child(1) {
+  top: 5.5%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+}
+#photo-strip.frame-cool-active .photo-frame:nth-child(2) {
+  top: 26.8%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+}
+#photo-strip.frame-cool-active .photo-frame:nth-child(3) {
+  top: 48.0%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+}
+#photo-strip.frame-cool-active .photo-frame:nth-child(4) {
+  top: 69.2%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+}
+
+/* ---------------------------------------------------------
+   [相框 C] 純白預設框 (對應 class: frame-white-active)
+   --------------------------------------------------------- */
+#photo-strip.frame-white-active {
+  background-color: #ffffff;
+}
+
+#photo-strip.frame-white-active .photo-layer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+  padding-top: 20px;
+}
+
+#photo-strip.frame-white-active .photo-frame {
+  position: relative;
+  top: auto; left: auto;
+  width: 88%;
+  height: 20%;
   border-radius: 0;
+}
+
+#photo-strip.frame-white-active #frame-overlay {
+  display: none; /* 純白模式下隱藏 overlay 圖片 */
+}
+
+/* 純白模式底部的日文字區塊 */
+.strip-footer {
+  display: none;
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+  text-align: center;
+  color: #333;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+#photo-strip.frame-white-active .strip-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
