@@ -7,6 +7,7 @@ const countdownOverlay = document.getElementById('countdown-overlay');
 const photoStrip = document.getElementById('photo-strip');
 const frameOverlay = document.getElementById('frame-overlay');
 const frameOptions = document.querySelectorAll('.frame-option');
+const filterBtns = document.querySelectorAll('.filter-btn');
 
 const canvases = [
   document.getElementById('canvas1'),
@@ -15,24 +16,48 @@ const canvases = [
   document.getElementById('canvas4')
 ];
 
-// 兩款專屬相框檔名 (請確保檔名與 GitHub 上上傳的 PNG 一致)
 const frameSources = {
   warm: 'frame_warm.png',
   cool: 'frame_cool.png'
 };
 
-// 1. 初始化相機
+// 濾鏡語法對照表 (直接給 Canvas 繪圖使用)
+const filterCanvasMap = {
+  'normal': 'none',
+  'beauty': 'brightness(1.1) contrast(0.95) saturate(1.1)',
+  'retro': 'sepia(0.35) contrast(1.1) brightness(0.95) saturate(1.2)',
+  'vintage': 'contrast(1.2) saturate(0.85) hue-rotate(-10deg)',
+  'bw': 'grayscale(1) contrast(1.2)'
+};
+
+let currentFilterKey = 'normal';
+
+// 1. 開啟鏡頭
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
-.then(stream => { 
-  webcam.srcObject = stream; 
-})
-.catch(err => { 
-  alert("無法開啟相機，請確認瀏覽器已允許相機存取權限！"); 
+.then(stream => { webcam.srcObject = stream; })
+.catch(err => { alert("無法開啟相機，請確認已允許相機權限！"); });
+
+// 2. 切換濾鏡 (同步更新 Webcam 與 Canvas)
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelector('.filter-btn.active').classList.remove('active');
+    e.target.classList.add('active');
+
+    currentFilterKey = e.target.getAttribute('data-filter');
+    
+    // 更新即時鏡頭預覽
+    webcam.style.filter = filterCanvasMap[currentFilterKey];
+
+    // 如果已經拍了照片，重新渲染濾鏡
+    canvases.forEach(canvas => {
+      canvas.style.filter = filterCanvasMap[currentFilterKey];
+    });
+  });
 });
 
-// 2. 切換相框邏輯
+// 3. 相框切換
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     document.querySelector('.frame-option.active').classList.remove('active');
@@ -43,14 +68,14 @@ frameOptions.forEach(option => {
   });
 });
 
-// 3. 連拍邏輯
+// 4. 連拍邏輯
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
 
   for (let i = 0; i < 4; i++) {
-    await countdown(3); // 倒數 3 秒
+    await countdown(3);
     takePhoto(canvases[i]);
   }
 
@@ -77,18 +102,25 @@ function countdown(seconds) {
   });
 }
 
+// 精確將濾鏡「畫」進 Canvas 裡
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   canvas.width = webcam.videoWidth;
   canvas.height = webcam.videoHeight;
   
-  // 水平翻轉以呈現鏡像
+  // 1. 將 Context 的濾鏡設為目前選取的濾鏡
+  ctx.filter = filterCanvasMap[currentFilterKey];
+
+  // 2. 水平鏡像翻轉繪製
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+
+  // 3. 確保畫面預覽也帶有濾鏡效果
+  canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
-// 4. 重拍按鈕
+// 5. 重拍
 retakeBtn.addEventListener('click', () => {
   canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
@@ -97,10 +129,10 @@ retakeBtn.addEventListener('click', () => {
   downloadBtn.disabled = true;
 });
 
-// 5. 下載作品
+// 6. 下載拍貼作品
 downloadBtn.addEventListener('click', () => {
   html2canvas(photoStrip, { 
-    scale: 3, // 保持高解析度導出
+    scale: 3, 
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
