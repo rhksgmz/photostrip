@@ -1,5 +1,5 @@
 /* =========================================================
-   1. 星空背景與全域樣式
+   1. 全域與星空背景
    ========================================================= */
 * {
   box-sizing: border-box;
@@ -9,7 +9,6 @@
 }
 
 body {
-  /* 星空漸層背景 */
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   color: #ffffff;
   display: flex;
@@ -21,7 +20,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 靜態星星圖層裝飾 */
+/* 背景星星點綴 */
 body::before {
   content: "";
   position: absolute;
@@ -31,10 +30,9 @@ body::before {
     radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 300px 60px, #ffffff, rgba(0,0,0,0));
+    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0));
   background-repeat: repeat;
-  background-size: 350px 350px;
+  background-size: 300px 300px;
   opacity: 0.6;
   z-index: 0;
 }
@@ -62,7 +60,6 @@ h1 {
   letter-spacing: 1.5px;
   margin-bottom: 10px;
   color: #e2e8f0;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .controls-panel, .preview-panel {
@@ -74,7 +71,7 @@ h1 {
 }
 
 /* =========================================================
-   2. 控制面板與即時鏡頭
+   2. 相機鏡頭與按鈕
    ========================================================= */
 .camera-container {
   position: relative;
@@ -91,6 +88,7 @@ h1 {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
+  transition: filter 0.3s;
 }
 
 #countdown-overlay {
@@ -123,40 +121,54 @@ h1 {
 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: #6366f1; color: white; }
-.btn.primary:hover:not(:disabled) { background: #4f46e5; }
 .btn.secondary { background: #334155; color: white; }
 .btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
-.btn.success:hover:not(:disabled) { background: #059669; }
 
-.frame-picker {
-  margin-top: 20px;
+/* 選擇器選單 (濾線 & 相框) */
+.picker-group {
+  margin-top: 15px;
   width: 100%;
 }
 
-.frame-picker label {
-  font-size: 14px;
+.picker-group label {
+  font-size: 13px;
   color: #94a3b8;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: block;
 }
 
-.frames {
+.options-row {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 4px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.filter-btn.active {
+  border-color: #38bdf8;
+  background: #1e293b;
+  color: #38bdf8;
+  font-weight: bold;
 }
 
 .frame-option {
   flex: 1;
-  height: 80px;
+  height: 65px;
   background: #0f172a;
   border: 2px solid transparent;
   border-radius: 8px;
   cursor: pointer;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s;
 }
 
 .frame-option img {
@@ -167,11 +179,10 @@ h1 {
 
 .frame-option.active {
   border-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
 /* =========================================================
-   3. 拍貼框圖層結構 (照片在下 z-index:1, 相框直接蓋在最上面 z-index:2)
+   3. 拍貼框圖層與精準座標 (照片在下，相框完全蓋在最上面)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -182,14 +193,11 @@ h1 {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
 }
 
-/* 下層：照片圖層 */
 .photo-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1; /* 照片在下 */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
 }
 
 .photo-frame {
@@ -202,55 +210,55 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: filter 0.3s;
 }
 
-/* 上層：透明 PNG 相框 (無任何特殊 Blend 效果，直接蓋在上面) */
+/* 相框圖層直接疊在最上層 */
 #frame-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   object-fit: fill;
-  z-index: 2; /* 蓋在最上面 */
+  z-index: 2;
   pointer-events: none;
 }
 
-/* =========================================================
-   4. 📏 精密位置計算：
-      - 第一張照片距離頂端 3.15cm (網頁比例下為 148.8px)
-      - 照片尺寸 500*345px (網頁比例下為 200px * 138px)
-      - 照片之間間距 0.73cm (網頁比例下為 34.5px)
-   ========================================================= */
-
-/* 第 1 張：頂端 148.8px */
+/* ---------------------------------------------------------
+   🎯 精算照片位置 (3.10cm 頂距 + 500*345 照片 + 0.73cm 間距)
+   --------------------------------------------------------- */
 .photo-frame:nth-child(1) {
-  top: 148.8px;
+  top: 146.4px; /* 3.10cm 換算值 */
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-/* 第 2 張：148.8 + 138 + 34.5 = 321.3px */
 .photo-frame:nth-child(2) {
-  top: 321.3px;
+  top: 318.9px; /* 146.4 + 138 + 34.5 */
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-/* 第 3 張：321.3 + 138 + 34.5 = 493.8px */
 .photo-frame:nth-child(3) {
-  top: 493.8px;
+  top: 491.4px; /* 318.9 + 138 + 34.5 */
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-/* 第 4 張：493.8 + 138 + 34.5 = 666.3px (若超出可由最底部 PNG 自然裁切) */
 .photo-frame:nth-child(4) {
-  top: 666.3px;
+  top: 663.9px; /* 491.4 + 138 + 34.5 */
   left: 20px;
   width: 200px;
   height: 138px;
 }
+
+/* =========================================================
+   4. ✨ 特效濾鏡 CSS 效果
+   ========================================================= */
+.filter-normal { filter: none; }
+.filter-retro  { filter: sepia(0.35) contrast(1.1) brightness(0.95) saturate(1.2); }
+.filter-beauty { filter: brightness(1.1) contrast(0.95) saturate(1.1) blur(0.3px); }
+.filter-bw     { filter: grayscale(1) contrast(1.2); }
+.filter-vintage{ filter: contrast(1.2) saturate(0.85) hue-rotate(-10deg); }

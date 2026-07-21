@@ -7,16 +7,13 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 星空背景裝飾顆粒 -->
-  <div class="stars"></div>
-
   <div class="container">
     <h1>✨ EXO-L 韓式四格拍貼機 ✨</h1>
     
-    <!-- 左側：控制區與即時預覽 -->
+    <!-- 左側控制區 -->
     <div class="controls-panel">
       <div class="camera-container">
-        <video id="webcam" autoplay playsinline muted></video>
+        <video id="webcam" class="filter-normal" autoplay playsinline muted></video>
         <div id="countdown-overlay"></div>
       </div>
 
@@ -25,10 +22,22 @@
         <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
       </div>
 
-      <!-- 相框選擇器 (僅保留兩款專屬框) -->
-      <div class="frame-picker">
-        <label>選擇專屬相框：</label>
-        <div class="frames">
+      <!-- 特效濾鏡選擇區 -->
+      <div class="picker-group">
+        <label>✨ 選擇特效濾鏡：</label>
+        <div class="options-row">
+          <button class="filter-btn active" data-filter="normal">原圖</button>
+          <button class="filter-btn" data-filter="beauty">柔焦美肌</button>
+          <button class="filter-btn" data-filter="retro">韓式復古</button>
+          <button class="filter-btn" data-filter="vintage">底片膠片</button>
+          <button class="filter-btn" data-filter="bw">冷調黑白</button>
+        </div>
+      </div>
+
+      <!-- 相框選擇區 -->
+      <div class="picker-group">
+        <label>🖼️ 選擇專屬相框：</label>
+        <div class="options-row">
           <div class="frame-option active" data-frame="warm">
             <img src="frame_warm.png" alt="暖色手繪框">
           </div>
@@ -41,11 +50,9 @@
       <button id="download-btn" class="btn success" disabled>下載拍貼作品 💾</button>
     </div>
 
-    <!-- 右側：四格照片預覽區 -->
+    <!-- 右側預覽區 -->
     <div class="preview-panel">
-      <div id="photo-strip" class="frame-warm-active">
-        
-        <!-- 1. 下層：四張拍攝的照片 (Canvas) -->
+      <div id="photo-strip">
         <div class="photo-layer">
           <div class="photo-frame"><canvas id="canvas1"></canvas></div>
           <div class="photo-frame"><canvas id="canvas2"></canvas></div>
@@ -53,7 +60,7 @@
           <div class="photo-frame"><canvas id="canvas4"></canvas></div>
         </div>
 
-        <!-- 2. 上層：透明 PNG 相框 (無任何特殊效果，直接蓋在最上面) -->
+        <!-- PNG 相框覆蓋最上層 -->
         <img id="frame-overlay" src="frame_warm.png" alt="相框">
       </div>
     </div>
