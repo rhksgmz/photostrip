@@ -1,5 +1,5 @@
 /* =========================================================
-   3. 拍貼框圖層 (照片間距縮小 0.5 公分)
+   3. 拍貼框圖層 (照片整體往下 0.5 公分 + 間距調整)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -18,23 +18,25 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start; /* 改為由上往下依序排列 */
   
   /* 🎯 關鍵修改：
-     原本底部留白為 95px，縮小間距後將底部 Padding 縮減至 75px，
-     這樣四張照片就會彼此更靠近約 0.5 公分！ */
-  padding: 25px 20px 75px 20px;
+     1. padding-top 設為 45px (第一張照片整體往下移 0.5 公分)
+     2. gap 設為照片之間的固定間距 (可依視覺需求調整 px 數值) */
+  padding: 45px 20px 20px 20px;
+  gap: 24px; /* 照片與照片之間的固定間距 */
 }
 
 .photo-frame {
   width: 100%;
-  height: 22.8%; /* 微調每張照片佔比，讓間距變得更緊湊 */
+  height: 125px; /* 固定每張照片高度，確保等比例且不被推擠 */
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0; /* 防止照片尺寸被壓縮 */
 }
 
 .photo-frame canvas {
