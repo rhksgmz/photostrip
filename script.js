@@ -6,7 +6,7 @@ const countdownOverlay = document.getElementById('countdown-overlay');
 
 const photoStrip = document.getElementById('photo-strip');
 const frameOverlay = document.getElementById('frame-overlay');
-const frameCards = document.querySelectorAll('.frame-card');
+const frameOptions = document.querySelectorAll('.frame-option');
 
 const canvases = [
   document.getElementById('canvas1'),
@@ -15,14 +15,13 @@ const canvases = [
   document.getElementById('canvas4')
 ];
 
-// 相框圖片對照表
+// 兩款專屬相框檔名 (請確保檔名與 GitHub 上上傳的 PNG 一致)
 const frameSources = {
   warm: 'frame_warm.png',
-  cool: 'frame_cool.png',
-  none: ''
+  cool: 'frame_cool.png'
 };
 
-// 1. 初始化開啟 Webcam 相機
+// 1. 初始化相機
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
@@ -30,36 +29,28 @@ navigator.mediaDevices.getUserMedia({
   webcam.srcObject = stream; 
 })
 .catch(err => { 
-  alert("無法存取相機，請確認瀏覽器已允許使用相機權限！"); 
+  alert("無法開啟相機，請確認瀏覽器已允許相機存取權限！"); 
 });
 
 // 2. 切換相框邏輯
-frameCards.forEach(card => {
-  card.addEventListener('click', () => {
-    // 切換 active 狀態
-    document.querySelector('.frame-card.active').classList.remove('active');
-    card.classList.add('active');
+frameOptions.forEach(option => {
+  option.addEventListener('click', (e) => {
+    document.querySelector('.frame-option.active').classList.remove('active');
+    e.currentTarget.classList.add('active');
 
-    const frameType = card.getAttribute('data-frame');
-    
-    if (frameType === 'none') {
-      photoStrip.className = 'strip-container frame-none';
-    } else {
-      photoStrip.className = `strip-container frame-${frameType}-active`;
-      frameOverlay.src = frameSources[frameType];
-      frameOverlay.style.display = 'block';
-    }
+    const selectedFrame = e.currentTarget.getAttribute('data-frame');
+    frameOverlay.src = frameSources[selectedFrame];
   });
 });
 
-// 3. 開始連拍 4 張
+// 3. 連拍邏輯
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
 
   for (let i = 0; i < 4; i++) {
-    await countdown(3); // 每張倒數 3 秒
+    await countdown(3); // 倒數 3 秒
     takePhoto(canvases[i]);
   }
 
@@ -68,7 +59,6 @@ async function startPhotography() {
   downloadBtn.disabled = false;
 }
 
-// 倒數計時器
 function countdown(seconds) {
   return new Promise(resolve => {
     let count = seconds;
@@ -87,13 +77,12 @@ function countdown(seconds) {
   });
 }
 
-// 擷取影像並繪製到 Canvas
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   canvas.width = webcam.videoWidth;
   canvas.height = webcam.videoHeight;
   
-  // 水平鏡像翻轉繪製
+  // 水平翻轉以呈現鏡像
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
@@ -108,11 +97,10 @@ retakeBtn.addEventListener('click', () => {
   downloadBtn.disabled = true;
 });
 
-// 5. 下載作品 (結合 html2canvas 高解析度輸出)
+// 5. 下載作品
 downloadBtn.addEventListener('click', () => {
-  // 高倍率渲染（scale: 3）確保下載品質清晰
   html2canvas(photoStrip, { 
-    scale: 3,
+    scale: 3, // 保持高解析度導出
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
