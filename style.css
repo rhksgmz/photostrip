@@ -63,7 +63,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1); /* 鏡像畫面 */
+  transform: scaleX(-1);
 }
 
 #countdown-overlay {
@@ -143,18 +143,18 @@ h1 {
 }
 
 /* =========================================================
-   3. 核心拍貼圖層架構 (照片在下，相框在上)
+   3. 核心圖層架構 (照片在下 z-index:1, 相框 PNG 在上 z-index:2)
    ========================================================= */
 #photo-strip {
   position: relative;
-  width: 240px;
-  height: 720px; /* 長條拍貼比例 */
-  background-color: #000;
+  width: 240px;  /* 對應原圖 600px 比例 */
+  height: 720px; /* 對應原圖 1800px 比例 */
+  background-color: transparent;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-/* 下層：照片放置區 (z-index: 1) */
+/* 下層：照片層 */
 .photo-layer {
   position: absolute;
   top: 0;
@@ -167,7 +167,7 @@ h1 {
 .photo-frame {
   position: absolute;
   overflow: hidden;
-  background-color: #111; /* 未拍攝時的預設底色 */
+  background-color: #111;
 }
 
 .photo-frame canvas {
@@ -176,7 +176,7 @@ h1 {
   object-fit: cover;
 }
 
-/* 上層：相框遮罩圖片 (z-index: 2) */
+/* 上層：透明 PNG 相框 */
 #frame-overlay {
   position: absolute;
   top: 0;
@@ -184,52 +184,80 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: fill;
-  z-index: 2; /* 確保相框覆蓋在照片上方 */
+  z-index: 2;
   pointer-events: none;
-  
-  /* 關鍵技術：濾色模式。這會把相框圖片中的黑色孔洞直接轉為透明，
-     保留最上面的手繪塗鴉與文字，同時透出底層的照片！ */
-  mix-blend-mode: screen; 
 }
 
 /* =========================================================
-   4. 🎯 各相框 4 張照片的精準絕對座標定位 (重點修正)
+   4. 📏 依 600*1800 與 500*345 精密計算的座標位置
    ========================================================= */
 
 /* ---------------------------------------------------------
-   [相框 A] EXO_2.jpg - 暖色手繪異形框 (對應 class: frame-warm-active)
+   [暖色異形框 frame_warm.png] (EXO_2)
+   依照原圖異形圓洞的垂直間距微調
    --------------------------------------------------------- */
 #photo-strip.frame-warm-active .photo-frame:nth-child(1) {
-  top: 10.2%; left: 7.5%; width: 85%; height: 16.2%; border-radius: 40% 40% 45% 45%;
+  top: 66px;
+  left: 20px;
+  width: 200px;  /* 500px * 0.4 */
+  height: 138px; /* 345px * 0.4 */
 }
+
 #photo-strip.frame-warm-active .photo-frame:nth-child(2) {
-  top: 27.2%; left: 10%; width: 80%; height: 15.8%; border-radius: 45%;
+  top: 212px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
+
 #photo-strip.frame-warm-active .photo-frame:nth-child(3) {
-  top: 44.2%; left: 7.5%; width: 85%; height: 15.8%; border-radius: 42%;
+  top: 358px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
+
 #photo-strip.frame-warm-active .photo-frame:nth-child(4) {
-  top: 61.2%; left: 12%; width: 76%; height: 14.0%; border-radius: 50%;
+  top: 504px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
 
 /* ---------------------------------------------------------
-   [相框 B] EXO_1.jpg - 銀河藍色圓角框 (對應 class: frame-cool-active)
+   [銀河藍圓角框 frame_cool.png] (EXO_1)
+   均勻分布於相框留白區域
    --------------------------------------------------------- */
 #photo-strip.frame-cool-active .photo-frame:nth-child(1) {
-  top: 5.5%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+  top: 38px;
+  left: 20px;
+  width: 200px;  /* 500px * 0.4 */
+  height: 138px; /* 345px * 0.4 */
 }
+
 #photo-strip.frame-cool-active .photo-frame:nth-child(2) {
-  top: 26.8%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+  top: 188px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
+
 #photo-strip.frame-cool-active .photo-frame:nth-child(3) {
-  top: 48.0%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+  top: 338px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
+
 #photo-strip.frame-cool-active .photo-frame:nth-child(4) {
-  top: 69.2%; left: 8.5%; width: 83%; height: 19.2%; border-radius: 12px;
+  top: 488px;
+  left: 20px;
+  width: 200px;
+  height: 138px;
 }
 
 /* ---------------------------------------------------------
-   [相框 C] 純白預設框 (對應 class: frame-white-active)
+   [純白預設框]
    --------------------------------------------------------- */
 #photo-strip.frame-white-active {
   background-color: #ffffff;
@@ -247,16 +275,14 @@ h1 {
 #photo-strip.frame-white-active .photo-frame {
   position: relative;
   top: auto; left: auto;
-  width: 88%;
-  height: 20%;
-  border-radius: 0;
+  width: 200px;
+  height: 138px;
 }
 
 #photo-strip.frame-white-active #frame-overlay {
-  display: none; /* 純白模式下隱藏 overlay 圖片 */
+  display: none;
 }
 
-/* 純白模式底部的日文字區塊 */
 .strip-footer {
   display: none;
   position: absolute;
