@@ -1,5 +1,234 @@
 /* =========================================================
-   3. 拍貼框圖層 (韓式標準比例：4張完整呈現 + 間距0.5cm)
+   1. 重置與星空背景
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 15px;
+  position: relative;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 星空點綴 */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  opacity: 0.7;
+  z-index: 0;
+}
+
+/* 🎯 主容器：絕對限制寬度，防溢出跑版 */
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  background: rgba(23, 25, 38, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  max-width: 800px;
+  width: 100%;
+}
+
+/* EXO 金屬風格標題 */
+h1.exo-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px rgba(99, 102, 241, 0.8);
+}
+
+.controls-panel {
+  flex: 1 1 300px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-panel {
+  flex: 0 0 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 240px;
+}
+
+/* =========================================================
+   2. 相機鏡頭與藍光按鈕
+   ========================================================= */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  transition: filter 0.3s ease;
+}
+
+#countdown-overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 80px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 10px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.btn.secondary {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #93c5fd;
+}
+
+.btn.success {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+}
+
+.picker-group {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.picker-group label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.options-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: #0f172a;
+  border: 1px solid #1e3a8a;
+  color: #93c5fd;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.filter-btn.active {
+  border-color: #38bdf8;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.frame-option {
+  flex: 1;
+  height: 50px;
+  background: #0f172a;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.frame-option.active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+}
+
+.frame-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================================
+   3. 拍貼框圖層 (標準 4 張照片完整入框，間距約 0.5 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -11,25 +240,28 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
 }
 
+/* 使用 Flex 彈性均勻排開 4 張照片 */
 .photo-layer {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 45px; /* 第一張頂部留白 */
+  padding-left: 20px;
+  padding-right: 20px;
+  gap: 12px; /* 照片與照片間距約 0.5 公分 */
 }
 
-/* 🎯 韓式拍貼精確比例：相片寬度 200px, 高度 122px (確保 4 張完整入框) */
 .photo-frame {
-  position: absolute;
-  left: 20px;
   width: 200px;
-  height: 122px;
+  height: 122px; /* 固定每張照片高度，確保 4 張 100% 顯現 */
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
 }
 
 .photo-frame canvas {
@@ -37,29 +269,6 @@
   height: 100% !important;
   object-fit: cover !important;
   transition: filter 0.3s ease;
-}
-
-/* ---------------------------------------------------------
-   🎯 4張照片精確座標 (頂留白 42px，間距約 0.4~0.5 cm / 12px)
-   --------------------------------------------------------- */
-/* 第 1 張照片 */
-.photo-frame:nth-child(1) {
-  top: 42px;
-}
-
-/* 第 2 張照片：42 + 122 + 12 = 176px */
-.photo-frame:nth-child(2) {
-  top: 176px;
-}
-
-/* 第 3 張照片：176 + 122 + 12 = 310px */
-.photo-frame:nth-child(3) {
-  top: 310px;
-}
-
-/* 第 4 張照片：310 + 122 + 12 = 444px (完美落在 720px 內，底部預留空位放 LOGO) */
-.photo-frame:nth-child(4) {
-  top: 444px;
 }
 
 #frame-overlay {
@@ -71,7 +280,7 @@
   pointer-events: none;
 }
 
-/* 長按儲存圖層 */
+/* 手機長按下載層 */
 #final-result-img {
   position: absolute;
   top: 0; left: 0;
@@ -79,4 +288,14 @@
   z-index: 10;
   object-fit: fill;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  .controls-panel { max-width: 100%; }
+  #photo-strip {
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+  .preview-panel { margin-top: -20px; }
 }

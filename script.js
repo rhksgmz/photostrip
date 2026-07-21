@@ -31,16 +31,16 @@ const filterCanvasMap = {
 };
 
 let currentFilterKey = 'normal';
-let hasShot = false; // 標記是否已經拍照，防止未拍照前選濾鏡爆圖
+let hasShot = false;
 
-// 1. 開啟相機
+// 1. 開啟鏡頭
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認已授權權限！"); });
+.catch(err => { alert("無法開啟相機，請確認允許權限！"); });
 
-// 2. 切換特效濾鏡 (修復未拍照前點擊會讓成品不見的 Bug)
+// 2. 切換濾鏡
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -54,14 +54,13 @@ filterBtns.forEach(btn => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
     });
 
-    // 只有在【已經拍照完畢】的情況下，才重新生成預覽圖
     if (hasShot) {
       generateFinalImage();
     }
   });
 });
 
-// 3. 切換專屬相框
+// 3. 切換相框
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     document.querySelector('.frame-option.active').classList.remove('active');
@@ -76,7 +75,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍倒數
+// 4. 連拍
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -89,7 +88,7 @@ async function startPhotography() {
     takePhoto(canvases[i]);
   }
 
-  hasShot = true; // 標記拍照完成
+  hasShot = true;
   generateFinalImage();
 
   startBtn.disabled = false;
@@ -151,7 +150,7 @@ function takePhoto(canvas) {
   canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
-// 產生供長按儲存的高清圖片
+// 產生供長按下載的高清圖片
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
