@@ -1,6 +1,77 @@
-#webcam, .photo-frame canvas {
+/* =========================================================
+   3. 拍貼框圖層與 4 張照片座標修正
+   ========================================================= */
+#photo-strip {
+  position: relative;
+  width: 240px;
+  height: 720px; /* 保持原圖 600*1800 比例 (1:3) */
+  background-color: transparent;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+.photo-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; /* 照片在下 */
+}
+
+.photo-frame {
+  position: absolute;
+  overflow: hidden;
+  background-color: #000000;
+}
+
+.photo-frame canvas {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: filter 0.3s ease; /* 讓濾鏡切換時有平滑效果 */
+}
+
+/* PNG 相框遮罩覆蓋最上層 */
+#frame-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: fill;
+  z-index: 2; /* 相框在上 */
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------
+   🎯 精確等比例修正：確保 4 張照片全數入框
+   （相框頂端 3.10cm 換算約 122px、照片高度約 128px、間距 0.73cm 換算約 29px）
+   --------------------------------------------------------- */
+
+/* 第 1 張照片 */
+.photo-frame:nth-child(1) {
+  top: 122px;
+  left: 20px;
+  width: 200px;
+  height: 128px;
+}
+
+/* 第 2 張照片：122 + 128 + 29 = 279px */
+.photo-frame:nth-child(2) {
+  top: 279px;
+  left: 20px;
+  width: 200px;
+  height: 128px;
+}
+
+/* 第 3 張照片：279 + 128 + 29 = 436px */
+.photo-frame:nth-child(3) {
+  top: 436px;
+  left: 20px;
+  width: 200px;
+  height: 128px;
+}
+
+/* 第 4 張照片：436 + 128 + 29 = 593px（完美收在 720px 容器內！） */
+.photo-frame:nth-child(4) {
+  top: 593px;
+  left: 20px;
+  width: 200px;
+  height: 128px;
 }
