@@ -1,7 +1,7 @@
 /* =========================================================
-   1. 全域與深邃星空背景 (Starry Night Theme)
+   1. 重置與星空背景
    ========================================================= */
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -20,7 +20,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 星空閃爍顆粒效果 */
+/* 點綴星星背景 */
 body::before {
   content: "";
   position: absolute;
@@ -42,6 +42,8 @@ body::before {
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
   gap: 30px;
   background: rgba(23, 25, 38, 0.85);
   backdrop-filter: blur(12px);
@@ -49,30 +51,36 @@ body::before {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 950px;
+  max-width: 900px;
   width: 100%;
 }
 
 h1 {
   width: 100%;
   text-align: center;
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
   color: #e2e8f0;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
-.controls-panel, .preview-panel {
-  flex: 1;
-  min-width: 320px;
+.controls-panel {
+  flex: 1 1 340px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.preview-panel {
+  flex: 0 0 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* =========================================================
-   2. 即時鏡頭區與按鈕
+   2. 相機鏡頭與控制項
    ========================================================= */
 .camera-container {
   position: relative;
@@ -88,8 +96,8 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1); /* 鏡像畫面 */
-  transition: filter 0.3s;
+  transform: scaleX(-1);
+  transition: filter 0.3s ease;
 }
 
 #countdown-overlay {
@@ -97,7 +105,7 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 90px;
+  font-size: 80px;
   font-weight: bold;
   color: #fff;
   text-shadow: 0 0 20px rgba(0,0,0,0.8);
@@ -123,9 +131,9 @@ h1 {
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: #6366f1; color: white; }
 .btn.secondary { background: #334155; color: white; }
-.btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
+.btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 15px; }
 
-/* 選擇器選單 (濾鏡 & 相框) */
+/* 選擇器區塊 */
 .picker-group {
   margin-top: 15px;
   width: 100%;
@@ -136,20 +144,19 @@ h1 {
 .picker-group label {
   font-size: 13px;
   color: #94a3b8;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   display: block;
 }
 
 .options-row {
   display: flex;
   gap: 8px;
-  position: relative;
-  z-index: 11;
+  width: 100%;
 }
 
 .filter-btn {
   flex: 1;
-  padding: 10px 2px;
+  padding: 8px 0;
   background: #0f172a;
   border: 1px solid #334155;
   color: #cbd5e1;
@@ -158,6 +165,7 @@ h1 {
   cursor: pointer;
   pointer-events: auto !important;
   transition: 0.2s;
+  text-align: center;
 }
 
 .filter-btn.active {
@@ -165,12 +173,11 @@ h1 {
   background: #1e293b;
   color: #38bdf8;
   font-weight: bold;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
 }
 
 .frame-option {
   flex: 1;
-  height: 65px;
+  height: 60px;
   background: #0f172a;
   border: 2px solid transparent;
   border-radius: 8px;
@@ -189,7 +196,7 @@ h1 {
 }
 
 /* =========================================================
-   3. 最初穩定版佈局 (照片在下，相框完全蓋在最上面)
+   3. 拍貼框圖層 (穩定比例，照片在下，PNG 相框在上)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -197,10 +204,10 @@ h1 {
   height: 720px;
   background-color: #000;
   overflow: hidden;
+  border-radius: 4px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
 }
 
-/* 下層：照片佈局區 (最初版本的相對均勻排列，絕不壓縮照片) */
 .photo-layer {
   position: absolute;
   top: 0; left: 0;
@@ -209,30 +216,29 @@ h1 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 55px 20px 65px 20px; /* 留出上下 LOGO 與文字空間 */
+  padding: 55px 20px 65px 20px;
 }
 
 .photo-frame {
   width: 100%;
-  height: 22%; /* 四張均勻分佈 */
+  height: 22.2%;
   background-color: #111;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .photo-frame canvas {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 關鍵：確保拍照畫面滿框且絕不被壓縮拉伸 */
-  transition: filter 0.3s;
+  object-fit: cover; /* 確保相片滿格且絕不變形 */
+  transition: filter 0.3s ease;
 }
 
-/* 上層：透明 PNG 相框遮罩 */
 #frame-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: fill;
-  z-index: 2; /* 完全蓋在最上面 */
+  z-index: 2; /* 最上層遮罩 */
   pointer-events: none;
 }

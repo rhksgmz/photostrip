@@ -10,10 +10,10 @@
   <div class="container">
     <h1>✨ EXO-L 韓式四格拍貼機 ✨</h1>
     
-    <!-- 左側控制區 -->
+    <!-- 左側：相機與控制區 -->
     <div class="controls-panel">
       <div class="camera-container">
-        <video id="webcam" class="filter-normal" autoplay playsinline muted></video>
+        <video id="webcam" autoplay playsinline muted></video>
         <div id="countdown-overlay"></div>
       </div>
 
@@ -22,19 +22,19 @@
         <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
       </div>
 
-      <!-- 特效濾鏡選擇區 -->
+      <!-- 特效濾鏡選擇 -->
       <div class="picker-group">
         <label>✨ 選擇特效濾鏡：</label>
         <div class="options-row">
           <button class="filter-btn active" data-filter="normal">原圖</button>
-          <button class="filter-btn" data-filter="beauty">柔焦美肌</button>
-          <button class="filter-btn" data-filter="retro">韓式復古</button>
-          <button class="filter-btn" data-filter="vintage">底片膠片</button>
-          <button class="filter-btn" data-filter="bw">冷調黑白</button>
+          <button class="filter-btn" data-filter="beauty">美肌</button>
+          <button class="filter-btn" data-filter="retro">復古</button>
+          <button class="filter-btn" data-filter="vintage">膠片</button>
+          <button class="filter-btn" data-filter="bw">黑白</button>
         </div>
       </div>
 
-      <!-- 相框選擇區 -->
+      <!-- 相框選擇 -->
       <div class="picker-group">
         <label>🖼️ 選擇專屬相框：</label>
         <div class="options-row">
@@ -50,9 +50,10 @@
       <button id="download-btn" class="btn success" disabled>下載拍貼作品 💾</button>
     </div>
 
-    <!-- 右側預覽區 -->
+    <!-- 右側：四格照片預覽區 -->
     <div class="preview-panel">
       <div id="photo-strip">
+        <!-- 下層：4 張照片 -->
         <div class="photo-layer">
           <div class="photo-frame"><canvas id="canvas1"></canvas></div>
           <div class="photo-frame"><canvas id="canvas2"></canvas></div>
@@ -60,7 +61,7 @@
           <div class="photo-frame"><canvas id="canvas4"></canvas></div>
         </div>
 
-        <!-- PNG 相框覆蓋最上層 -->
+        <!-- 上層：PNG 相框遮罩 -->
         <img id="frame-overlay" src="frame_warm.png" alt="相框">
       </div>
     </div>

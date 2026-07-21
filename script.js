@@ -31,14 +31,14 @@ const filterCanvasMap = {
 
 let currentFilterKey = 'normal';
 
-// 1. 開啟相機
+// 1. 開啟相機鏡頭
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認已允許存取權限！"); });
+.catch(err => { alert("無法開啟相機，請確認瀏覽器允許存取相機！"); });
 
-// 2. 濾鏡切換
+// 2. 濾鏡選擇綁定
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -47,6 +47,7 @@ filterBtns.forEach(btn => {
     e.currentTarget.classList.add('active');
     currentFilterKey = e.currentTarget.getAttribute('data-filter');
     
+    // 即時更新 webcam 鏡頭與已有相片
     webcam.style.filter = filterCanvasMap[currentFilterKey];
     canvases.forEach(canvas => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
@@ -65,7 +66,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍
+// 4. 連拍倒數
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -104,6 +105,7 @@ function takePhoto(canvas) {
   canvas.width = webcam.videoWidth;
   canvas.height = webcam.videoHeight;
   
+  // 將濾鏡與鏡像寫入 Canvas
   ctx.filter = filterCanvasMap[currentFilterKey];
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
@@ -112,7 +114,7 @@ function takePhoto(canvas) {
   canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
-// 5. 重拍
+// 5. 重新拍照
 retakeBtn.addEventListener('click', () => {
   canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
