@@ -31,6 +31,7 @@ const filterCanvasMap = {
 };
 
 let currentFilterKey = 'normal';
+let hasShot = false; // 標記是否已經拍照，防止未拍照前選濾鏡爆圖
 
 // 1. 開啟相機
 navigator.mediaDevices.getUserMedia({ 
@@ -39,7 +40,7 @@ navigator.mediaDevices.getUserMedia({
 .then(stream => { webcam.srcObject = stream; })
 .catch(err => { alert("無法開啟相機，請確認已授權權限！"); });
 
-// 2. 切換特效濾鏡
+// 2. 切換特效濾鏡 (修復未拍照前點擊會讓成品不見的 Bug)
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -53,7 +54,8 @@ filterBtns.forEach(btn => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
     });
 
-    if (finalResultImg.style.display === 'block') {
+    // 只有在【已經拍照完畢】的情況下，才重新生成預覽圖
+    if (hasShot) {
       generateFinalImage();
     }
   });
@@ -68,24 +70,26 @@ frameOptions.forEach(option => {
     const selectedFrame = e.currentTarget.getAttribute('data-frame');
     frameOverlay.src = frameSources[selectedFrame];
 
-    if (finalResultImg.style.display === 'block') {
+    if (hasShot) {
       setTimeout(generateFinalImage, 100);
     }
   });
 });
 
-// 4. 開始連拍
+// 4. 連拍倒數
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
   finalResultImg.style.display = 'none';
+  hasShot = false;
 
   for (let i = 0; i < 4; i++) {
     await countdown(3);
     takePhoto(canvases[i]);
   }
 
+  hasShot = true; // 標記拍照完成
   generateFinalImage();
 
   startBtn.disabled = false;
@@ -115,7 +119,7 @@ function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   
   const targetWidth = 500;
-  const targetHeight = 345;
+  const targetHeight = 305;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
@@ -167,12 +171,13 @@ retakeBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
   finalResultImg.style.display = 'none';
+  hasShot = false;
   downloadBtn.disabled = true;
 });
 
 // 下載按鈕
 downloadBtn.addEventListener('click', () => {
-  if (finalResultImg.src) {
+  if (finalResultImg.src && hasShot) {
     const link = document.createElement('a');
     link.download = `EXhOrizon_${Date.now()}.png`;
     link.href = finalResultImg.src;
