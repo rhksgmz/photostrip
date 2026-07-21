@@ -1,208 +1,5 @@
 /* =========================================================
-   1. 重置與星空背景
-   ========================================================= */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 15px;
-  position: relative;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-body::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 300px 300px;
-  opacity: 0.7;
-  z-index: 0;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  background: rgba(23, 25, 38, 0.85);
-  backdrop-filter: blur(12px);
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 900px;
-  width: 100%;
-}
-
-/* 🎯 EXO 風格標題：套用 Orbitron 金屬專屬字體 */
-h1.exo-title {
-  width: 100%;
-  text-align: center;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-  color: #ffffff;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px rgba(99, 102, 241, 0.8);
-}
-
-/* 面板配置 */
-.controls-panel {
-  flex: 1 1 300px;
-  max-width: 420px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.preview-panel {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 260px;
-}
-
-/* =========================================================
-   2. 控制項與按鈕
-   ========================================================= */
-.camera-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-}
-
-#webcam {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-  transition: filter 0.3s ease;
-}
-
-#countdown-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 80px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 20px rgba(0,0,0,0.8);
-}
-
-.buttons {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.btn {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.primary { background: #6366f1; color: white; }
-.btn.secondary { background: #334155; color: white; }
-.btn.success { background: #10b981; color: white; margin-top: 12px; width: 100%; font-size: 15px; }
-
-.picker-group {
-  margin-top: 12px;
-  width: 100%;
-  position: relative;
-  z-index: 10;
-}
-
-.picker-group label {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.options-row {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #0f172a;
-  border: 1px solid #334155;
-  color: #cbd5e1;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  pointer-events: auto !important;
-  transition: 0.2s;
-  text-align: center;
-}
-
-.filter-btn.active {
-  border-color: #38bdf8;
-  background: #1e293b;
-  color: #38bdf8;
-  font-weight: bold;
-}
-
-.frame-option {
-  flex: 1;
-  height: 55px;
-  background: #0f172a;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.frame-option img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.frame-option.active {
-  border-color: #38bdf8;
-}
-
-/* =========================================================
-   3. 拍貼框圖層 (照片整體向上調高約 0.7 公分)
+   3. 拍貼框圖層 (照片間距縮小 0.5 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -222,13 +19,16 @@ h1.exo-title {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /* 🎯 關鍵修改：頂部內距由 55px 減為 25px (相當於照片整體往上抬升約 0.7 公分) */
-  padding: 25px 20px 95px 20px;
+  
+  /* 🎯 關鍵修改：
+     原本底部留白為 95px，縮小間距後將底部 Padding 縮減至 75px，
+     這樣四張照片就會彼此更靠近約 0.5 公分！ */
+  padding: 25px 20px 75px 20px;
 }
 
 .photo-frame {
   width: 100%;
-  height: 22.2%;
+  height: 22.8%; /* 微調每張照片佔比，讓間距變得更緊湊 */
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
@@ -253,22 +53,12 @@ h1.exo-title {
   pointer-events: none;
 }
 
-/* 🎯 可供手機直接「長按下載」的透明圖片層 (合成後覆蓋在最上層) */
+/* 長按儲存層 */
 #final-result-img {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  z-index: 10; /* 最高層級，讓手機能點擊與長按 */
+  z-index: 10;
   object-fit: fill;
   cursor: pointer;
-}
-
-@media (max-width: 600px) {
-  .container { padding: 15px; }
-  .controls-panel { max-width: 100%; }
-  #photo-strip {
-    transform: scale(0.95);
-    transform-origin: top center;
-  }
-  .preview-panel { margin-top: -15px; }
 }
