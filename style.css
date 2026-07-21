@@ -15,12 +15,11 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 15px;
   position: relative;
   overflow-x: hidden;
 }
 
-/* 點綴星星背景 */
 body::before {
   content: "";
   position: absolute;
@@ -29,8 +28,7 @@ body::before {
     radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
     radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0));
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
   background-repeat: repeat;
   background-size: 300px 300px;
   opacity: 0.7;
@@ -44,10 +42,10 @@ body::before {
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  gap: 30px;
+  gap: 20px;
   background: rgba(23, 25, 38, 0.85);
   backdrop-filter: blur(12px);
-  padding: 30px;
+  padding: 20px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
@@ -58,29 +56,33 @@ body::before {
 h1 {
   width: 100%;
   text-align: center;
-  font-size: 22px;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
   color: #e2e8f0;
 }
 
+/* 雙欄與手機適配 */
 .controls-panel {
-  flex: 1 1 340px;
-  max-width: 400px;
+  flex: 1 1 300px;
+  max-width: 420px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .preview-panel {
-  flex: 0 0 240px;
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  max-width: 260px;
 }
 
 /* =========================================================
-   2. 相機鏡頭與控制項
+   2. 即時鏡頭區與控制項
    ========================================================= */
 .camera-container {
   position: relative;
@@ -112,7 +114,7 @@ h1 {
 }
 
 .buttons {
-  margin-top: 15px;
+  margin-top: 12px;
   display: flex;
   gap: 10px;
   width: 100%;
@@ -131,11 +133,11 @@ h1 {
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: #6366f1; color: white; }
 .btn.secondary { background: #334155; color: white; }
-.btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 15px; }
+.btn.success { background: #10b981; color: white; margin-top: 12px; width: 100%; font-size: 15px; }
 
 /* 選擇器區塊 */
 .picker-group {
-  margin-top: 15px;
+  margin-top: 12px;
   width: 100%;
   position: relative;
   z-index: 10;
@@ -144,13 +146,13 @@ h1 {
 .picker-group label {
   font-size: 13px;
   color: #94a3b8;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: block;
 }
 
 .options-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -161,7 +163,7 @@ h1 {
   border: 1px solid #334155;
   color: #cbd5e1;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   pointer-events: auto !important;
   transition: 0.2s;
@@ -177,7 +179,7 @@ h1 {
 
 .frame-option {
   flex: 1;
-  height: 60px;
+  height: 55px;
   background: #0f172a;
   border: 2px solid transparent;
   border-radius: 8px;
@@ -196,7 +198,7 @@ h1 {
 }
 
 /* =========================================================
-   3. 拍貼框圖層 (穩定比例，照片在下，PNG 相框在上)
+   3. 拍貼框圖層 (解決照片壓縮問題)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -225,12 +227,16 @@ h1 {
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 關鍵修復：Canvas 完全填滿且以裝飾裁切的方式呈現，不變形！ */
 .photo-frame canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* 確保相片滿格且絕不變形 */
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
   transition: filter 0.3s ease;
 }
 
@@ -239,6 +245,24 @@ h1 {
   top: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: fill;
-  z-index: 2; /* 最上層遮罩 */
+  z-index: 2;
   pointer-events: none;
+}
+
+/* 📱 手機板專屬響應式 (RWD) 調整 */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+  .controls-panel {
+    max-width: 100%;
+  }
+  #photo-strip {
+    /* 在手機螢幕微幅縮放，確保整個拍貼機能一眼看清 */
+    transform: scale(0.95);
+    transform-origin: top center;
+  }
+  .preview-panel {
+    margin-top: -15px;
+  }
 }

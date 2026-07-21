@@ -31,14 +31,14 @@ const filterCanvasMap = {
 
 let currentFilterKey = 'normal';
 
-// 1. 開啟相機鏡頭
+// 1. 開啟相機
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認瀏覽器允許存取相機！"); });
+.catch(err => { alert("無法開啟相機，請確認已授權權限！"); });
 
-// 2. 濾鏡選擇綁定
+// 2. 濾鏡切換
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -47,7 +47,6 @@ filterBtns.forEach(btn => {
     e.currentTarget.classList.add('active');
     currentFilterKey = e.currentTarget.getAttribute('data-filter');
     
-    // 即時更新 webcam 鏡頭與已有相片
     webcam.style.filter = filterCanvasMap[currentFilterKey];
     canvases.forEach(canvas => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
@@ -100,21 +99,49 @@ function countdown(seconds) {
   });
 }
 
+// 🎯 核心修復：精確裁切畫面，防止照片變形與壓縮！
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
-  canvas.width = webcam.videoWidth;
-  canvas.height = webcam.videoHeight;
   
-  // 將濾鏡與鏡像寫入 Canvas
+  // 將 Canvas 尺寸設為拍貼框孔洞的實際渲染比例 (500x345 比例)
+  const targetWidth = 500;
+  const targetHeight = 345;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const vWidth = webcam.videoWidth;
+  const vHeight = webcam.videoHeight;
+
+  // 計算以 cover 方式裁切 Webcam 影像的長寬
+  const videoAspect = vWidth / vHeight;
+  const targetAspect = targetWidth / targetHeight;
+
+  let sWidth, sHeight, sx, sy;
+
+  if (videoAspect > targetAspect) {
+    sHeight = vHeight;
+    sWidth = vHeight * targetAspect;
+    sx = (vWidth - sWidth) / 2;
+    sy = 0;
+  } else {
+    sWidth = vWidth;
+    sHeight = vWidth / targetAspect;
+    sx = 0;
+    sy = (vHeight - sHeight) / 2;
+  }
+
+  // 套用濾鏡
   ctx.filter = filterCanvasMap[currentFilterKey];
+
+  // 鏡像翻轉並進行 Cover 裁切繪製
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 
   canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
-// 5. 重新拍照
+// 5. 重拍
 retakeBtn.addEventListener('click', () => {
   canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
