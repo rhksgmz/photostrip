@@ -35,6 +35,7 @@ body::before {
   z-index: 0;
 }
 
+/* 主面板網格 (極致防跑位) */
 .container {
   position: relative;
   z-index: 1;
@@ -49,7 +50,7 @@ body::before {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 900px;
+  max-width: 850px;
   width: 100%;
 }
 
@@ -61,7 +62,7 @@ h1.exo-title {
   font-weight: 800;
   font-size: 22px;
   letter-spacing: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   color: #ffffff;
   text-transform: uppercase;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px rgba(99, 102, 241, 0.8);
@@ -69,7 +70,7 @@ h1.exo-title {
 
 .controls-panel {
   flex: 1 1 300px;
-  max-width: 420px;
+  max-width: 400px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -82,11 +83,11 @@ h1.exo-title {
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 260px;
+  max-width: 250px;
 }
 
 /* =========================================================
-   2. 按鈕與選擇器 (藍色調外光暈 Neon Glow)
+   2. 相機與藍色調外光暈按鈕 (Glow Design)
    ========================================================= */
 .camera-container {
   position: relative;
@@ -117,24 +118,24 @@ h1.exo-title {
 }
 
 .buttons {
-  margin-top: 15px;
+  margin-top: 12px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
 .btn {
   flex: 1;
-  padding: 12px 16px;
+  padding: 12px 14px;
   border: 1px solid rgba(56, 189, 248, 0.4);
   border-radius: 10px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   color: #ffffff;
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s ease;
 }
 
 .btn:hover:not(:disabled) {
@@ -160,9 +161,9 @@ h1.exo-title {
 }
 
 .btn.success {
-  margin-top: 15px;
+  margin-top: 12px;
   width: 100%;
-  font-size: 15px;
+  font-size: 14px;
   background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   border-color: #7dd3fc;
   box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
@@ -176,7 +177,7 @@ h1.exo-title {
 }
 
 .picker-group label {
-  font-size: 13px;
+  font-size: 12px;
   color: #94a3b8;
   margin-bottom: 6px;
   display: block;
@@ -233,7 +234,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   3. 🎯 完美穩定版拍貼佈局 (防破版百分比計算)
+   3. 拍貼框圖層 (嚴格百分比控制，永不推擠溢出)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -252,18 +253,18 @@ h1.exo-title {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 自動對齊 4 張照片 */
+  justify-content: space-between;
   
-  /* 🎯 頂部往下移 + 照片間距完美緊湊 (無 px 溢出問題) */
-  padding-top: 6.5%;     /* 頂部往下移動的距離 */
-  padding-bottom: 8.5%;  /* 底部留白 */
-  padding-left: 8.3%;    /* 左右置中 */
+  /* 精準調校邊界比例 */
+  padding-top: 6.8%;     
+  padding-bottom: 9.0%;  
+  padding-left: 8.3%;    
   padding-right: 8.3%;
 }
 
 .photo-frame {
   width: 100%;
-  height: 19.8%; /* 精確控制每張照片高度，確保緊湊且絕不爆版 */
+  height: 20.2%; /* 四張照片穩穩鎖定高度，不疊壓、不溢出 */
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
@@ -288,7 +289,6 @@ h1.exo-title {
   pointer-events: none;
 }
 
-/* 手機長按下載圖層 */
 #final-result-img {
   position: absolute;
   top: 0; left: 0;
@@ -298,12 +298,13 @@ h1.exo-title {
   cursor: pointer;
 }
 
+/* 📱 手機板適配 */
 @media (max-width: 600px) {
-  .container { padding: 15px; }
+  .container { padding: 12px; }
   .controls-panel { max-width: 100%; }
   #photo-strip {
-    transform: scale(0.95);
+    transform: scale(0.92);
     transform-origin: top center;
   }
-  .preview-panel { margin-top: -15px; }
+  .preview-panel { margin-top: -20px; }
 }
