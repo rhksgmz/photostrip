@@ -1,240 +1,5 @@
 /* =========================================================
-   1. 重置與星空背景
-   ========================================================= */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 15px;
-  position: relative;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-body::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 300px 300px;
-  opacity: 0.7;
-  z-index: 0;
-}
-
-/* 主面板網格 (極致防跑位) */
-.container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  background: rgba(23, 25, 38, 0.85);
-  backdrop-filter: blur(12px);
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 850px;
-  width: 100%;
-}
-
-/* EXO 專屬金屬字體標題 */
-h1.exo-title {
-  width: 100%;
-  text-align: center;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: 2px;
-  margin-bottom: 5px;
-  color: #ffffff;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px rgba(99, 102, 241, 0.8);
-}
-
-.controls-panel {
-  flex: 1 1 300px;
-  max-width: 400px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.preview-panel {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 250px;
-}
-
-/* =========================================================
-   2. 相機與藍色調外光暈按鈕 (Glow Design)
-   ========================================================= */
-.camera-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-}
-
-#webcam {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-  transition: filter 0.3s ease;
-}
-
-#countdown-overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 80px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 20px rgba(0,0,0,0.8);
-}
-
-.buttons {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.btn {
-  flex: 1;
-  padding: 12px 14px;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  color: #ffffff;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
-  transition: all 0.25s ease;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8), 0 0 30px rgba(59, 130, 246, 0.4);
-}
-
-.btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  box-shadow: none;
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.btn.secondary {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border-color: rgba(56, 189, 248, 0.3);
-  color: #93c5fd;
-  box-shadow: 0 0 8px rgba(30, 58, 138, 0.4);
-}
-
-.btn.success {
-  margin-top: 12px;
-  width: 100%;
-  font-size: 14px;
-  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-  border-color: #7dd3fc;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
-}
-
-.picker-group {
-  margin-top: 12px;
-  width: 100%;
-  position: relative;
-  z-index: 10;
-}
-
-.picker-group label {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.options-row {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #0f172a;
-  border: 1px solid #1e3a8a;
-  color: #93c5fd;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  pointer-events: auto !important;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.filter-btn.active {
-  border-color: #38bdf8;
-  background: #1e3a8a;
-  color: #ffffff;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
-}
-
-.frame-option {
-  flex: 1;
-  height: 55px;
-  background: #0f172a;
-  border: 2px solid #1e3a8a;
-  border-radius: 8px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.frame-option.active {
-  border-color: #38bdf8;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
-}
-
-.frame-option img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* =========================================================
-   3. 拍貼框圖層 (嚴格百分比控制，永不推擠溢出)
+   3. 拍貼框圖層 (照片間距再縮小 0.7 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -255,16 +20,19 @@ h1.exo-title {
   flex-direction: column;
   justify-content: space-between;
   
-  /* 精準調校邊界比例 */
+  /* 🎯 邊界內距微調 */
   padding-top: 6.8%;     
-  padding-bottom: 9.0%;  
+  padding-bottom: 7.0%;  
   padding-left: 8.3%;    
   padding-right: 8.3%;
 }
 
 .photo-frame {
   width: 100%;
-  height: 20.2%; /* 四張照片穩穩鎖定高度，不疊壓、不溢出 */
+  /* 🎯 關鍵修改：
+     將每張照片高度由原本的 20.2% 提高至 21.2%，
+     這樣四張照片就會自動向上/向下擴展，使中間的間距收緊約 0.7 公分！ */
+  height: 21.2%; 
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
@@ -296,15 +64,4 @@ h1.exo-title {
   z-index: 10;
   object-fit: fill;
   cursor: pointer;
-}
-
-/* 📱 手機板適配 */
-@media (max-width: 600px) {
-  .container { padding: 12px; }
-  .controls-panel { max-width: 100%; }
-  #photo-strip {
-    transform: scale(0.92);
-    transform-origin: top center;
-  }
-  .preview-panel { margin-top: -20px; }
 }
