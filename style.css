@@ -71,7 +71,7 @@ h1 {
 }
 
 /* =========================================================
-   2. 相機鏡頭與按鈕
+   2. 相機鏡頭與控制區
    ========================================================= */
 .camera-container {
   position: relative;
@@ -124,7 +124,7 @@ h1 {
 .btn.secondary { background: #334155; color: white; }
 .btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
 
-/* 選擇器選單 (濾線 & 相框) */
+/* 選擇器選單 (濾鏡 & 相框) */
 .picker-group {
   margin-top: 15px;
   width: 100%;
@@ -182,12 +182,12 @@ h1 {
 }
 
 /* =========================================================
-   3. 拍貼框圖層與精準座標 (照片在下，相框完全蓋在最上面)
+   3. 拍貼框圖層與標準韓式四格座標 (照片在下，PNG 相框在上)
    ========================================================= */
 #photo-strip {
   position: relative;
-  width: 240px;  /* 對應 600px 原圖 */
-  height: 720px; /* 對應 1800px 原圖 */
+  width: 240px;  /* 600px 比例 */
+  height: 720px; /* 1800px 比例 */
   background-color: transparent;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
@@ -197,7 +197,7 @@ h1 {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  z-index: 1;
+  z-index: 1; /* 照片層 */
 }
 
 .photo-frame {
@@ -213,49 +213,54 @@ h1 {
   transition: filter 0.3s;
 }
 
-/* 相框圖層直接疊在最上層 */
+/* PNG 相框直接蓋在最上層 */
 #frame-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: fill;
-  z-index: 2;
+  z-index: 2; /* 蓋在上面 */
   pointer-events: none;
 }
 
 /* ---------------------------------------------------------
-   🎯 精算照片位置 (3.10cm 頂距 + 500*345 照片 + 0.73cm 間距)
+   🎯 標準普遍拍貼機座標配置 (均勻等距直排)
    --------------------------------------------------------- */
+/* 第 1 張照片：頂部預留 55px 給 LOGO，左右各留 20px 置中 */
 .photo-frame:nth-child(1) {
-  top: 146.4px; /* 3.10cm 換算值 */
+  top: 55px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
+/* 第 2 張照片：55 + 138 + 18 (間距) = 211px */
 .photo-frame:nth-child(2) {
-  top: 318.9px; /* 146.4 + 138 + 34.5 */
+  top: 211px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
+/* 第 3 張照片：211 + 138 + 18 (間距) = 367px */
 .photo-frame:nth-child(3) {
-  top: 491.4px; /* 318.9 + 138 + 34.5 */
+  top: 367px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
+/* 第 4 張照片：367 + 138 + 18 (間距) = 523px */
 .photo-frame:nth-child(4) {
-  top: 663.9px; /* 491.4 + 138 + 34.5 */
+  top: 523px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
+/* 底部剩餘約 59px (523 + 138 = 661px) 留給底部文字與日期 */
 
 /* =========================================================
-   4. ✨ 特效濾鏡 CSS 效果
+   4. 特效濾鏡 CSS 效果
    ========================================================= */
 .filter-normal { filter: none; }
 .filter-retro  { filter: sepia(0.35) contrast(1.1) brightness(0.95) saturate(1.2); }
