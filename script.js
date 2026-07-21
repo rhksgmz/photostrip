@@ -21,7 +21,6 @@ const frameSources = {
   cool: 'frame_cool.png'
 };
 
-// 濾鏡語法對照表 (直接給 Canvas 繪圖使用)
 const filterCanvasMap = {
   'normal': 'none',
   'beauty': 'brightness(1.1) contrast(0.95) saturate(1.1)',
@@ -32,25 +31,23 @@ const filterCanvasMap = {
 
 let currentFilterKey = 'normal';
 
-// 1. 開啟鏡頭
+// 1. 開啟相機
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認已允許相機權限！"); });
+.catch(err => { alert("無法開啟相機，請確認已允許存取權限！"); });
 
-// 2. 切換濾鏡 (同步更新 Webcam 與 Canvas)
+// 2. 濾鏡切換
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
-    document.querySelector('.filter-btn.active').classList.remove('active');
-    e.target.classList.add('active');
-
-    currentFilterKey = e.target.getAttribute('data-filter');
+    const activeBtn = document.querySelector('.filter-btn.active');
+    if (activeBtn) activeBtn.classList.remove('active');
     
-    // 更新即時鏡頭預覽
+    e.currentTarget.classList.add('active');
+    currentFilterKey = e.currentTarget.getAttribute('data-filter');
+    
     webcam.style.filter = filterCanvasMap[currentFilterKey];
-
-    // 如果已經拍了照片，重新渲染濾鏡
     canvases.forEach(canvas => {
       canvas.style.filter = filterCanvasMap[currentFilterKey];
     });
@@ -68,7 +65,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍邏輯
+// 4. 連拍
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -102,21 +99,16 @@ function countdown(seconds) {
   });
 }
 
-// 精確將濾鏡「畫」進 Canvas 裡
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   canvas.width = webcam.videoWidth;
   canvas.height = webcam.videoHeight;
   
-  // 1. 將 Context 的濾鏡設為目前選取的濾鏡
   ctx.filter = filterCanvasMap[currentFilterKey];
-
-  // 2. 水平鏡像翻轉繪製
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
 
-  // 3. 確保畫面預覽也帶有濾鏡效果
   canvas.style.filter = filterCanvasMap[currentFilterKey];
 }
 
@@ -129,7 +121,7 @@ retakeBtn.addEventListener('click', () => {
   downloadBtn.disabled = true;
 });
 
-// 6. 下載拍貼作品
+// 6. 下載作品
 downloadBtn.addEventListener('click', () => {
   html2canvas(photoStrip, { 
     scale: 3, 

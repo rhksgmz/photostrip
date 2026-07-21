@@ -1,77 +1,238 @@
 /* =========================================================
-   3. 拍貼框圖層與 4 張照片座標修正
+   1. 全域與深邃星空背景 (Starry Night Theme)
    ========================================================= */
-#photo-strip {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
   position: relative;
-  width: 240px;
-  height: 720px; /* 保持原圖 600*1800 比例 (1:3) */
-  background-color: transparent;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  overflow-x: hidden;
 }
 
-.photo-layer {
+/* 星空閃爍顆粒效果 */
+body::before {
+  content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 1; /* 照片在下 */
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  opacity: 0.7;
+  z-index: 0;
 }
 
-.photo-frame {
-  position: absolute;
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  background: rgba(23, 25, 38, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  max-width: 950px;
+  width: 100%;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  color: #e2e8f0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.controls-panel, .preview-panel {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================================================
+   2. 即時鏡頭區與按鈕
+   ========================================================= */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #000000;
+  border: 2px solid rgba(255, 255, 255, 0.15);
 }
 
-.photo-frame canvas {
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* 鏡像畫面 */
+  transition: filter 0.3s;
+}
+
+#countdown-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 90px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary { background: #6366f1; color: white; }
+.btn.secondary { background: #334155; color: white; }
+.btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
+
+/* 選擇器選單 (濾鏡 & 相框) */
+.picker-group {
+  margin-top: 15px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.picker-group label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.options-row {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 11;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 10px 2px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  pointer-events: auto !important;
+  transition: 0.2s;
+}
+
+.filter-btn.active {
+  border-color: #38bdf8;
+  background: #1e293b;
+  color: #38bdf8;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.frame-option {
+  flex: 1;
+  height: 65px;
+  background: #0f172a;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.frame-option img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* PNG 相框遮罩覆蓋最上層 */
+.frame-option.active {
+  border-color: #38bdf8;
+}
+
+/* =========================================================
+   3. 最初穩定版佈局 (照片在下，相框完全蓋在最上面)
+   ========================================================= */
+#photo-strip {
+  position: relative;
+  width: 240px;
+  height: 720px;
+  background-color: #000;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+/* 下層：照片佈局區 (最初版本的相對均勻排列，絕不壓縮照片) */
+.photo-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 55px 20px 65px 20px; /* 留出上下 LOGO 與文字空間 */
+}
+
+.photo-frame {
+  width: 100%;
+  height: 22%; /* 四張均勻分佈 */
+  background-color: #111;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.photo-frame canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 關鍵：確保拍照畫面滿框且絕不被壓縮拉伸 */
+  transition: filter 0.3s;
+}
+
+/* 上層：透明 PNG 相框遮罩 */
 #frame-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: fill;
-  z-index: 2; /* 相框在上 */
+  z-index: 2; /* 完全蓋在最上面 */
   pointer-events: none;
-}
-
-/* ---------------------------------------------------------
-   🎯 精確等比例修正：確保 4 張照片全數入框
-   （相框頂端 3.10cm 換算約 122px、照片高度約 128px、間距 0.73cm 換算約 29px）
-   --------------------------------------------------------- */
-
-/* 第 1 張照片 */
-.photo-frame:nth-child(1) {
-  top: 122px;
-  left: 20px;
-  width: 200px;
-  height: 128px;
-}
-
-/* 第 2 張照片：122 + 128 + 29 = 279px */
-.photo-frame:nth-child(2) {
-  top: 279px;
-  left: 20px;
-  width: 200px;
-  height: 128px;
-}
-
-/* 第 3 張照片：279 + 128 + 29 = 436px */
-.photo-frame:nth-child(3) {
-  top: 436px;
-  left: 20px;
-  width: 200px;
-  height: 128px;
-}
-
-/* 第 4 張照片：436 + 128 + 29 = 593px（完美收在 720px 容器內！） */
-.photo-frame:nth-child(4) {
-  top: 593px;
-  left: 20px;
-  width: 200px;
-  height: 128px;
 }
