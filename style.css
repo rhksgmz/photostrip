@@ -1,5 +1,5 @@
 /* =========================================================
-   3. 拍貼框圖層 (照片間距再縮小 0.7 公分)
+   3. 拍貼框圖層 (照片尺寸固定 + 照片間距精準 0.5 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -16,23 +16,14 @@
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  
-  /* 🎯 邊界內距微調 */
-  padding-top: 6.8%;     
-  padding-bottom: 7.0%;  
-  padding-left: 8.3%;    
-  padding-right: 8.3%;
 }
 
+/* 每張照片尺寸固定（不變形、不放大拉伸） */
 .photo-frame {
-  width: 100%;
-  /* 🎯 關鍵修改：
-     將每張照片高度由原本的 20.2% 提高至 21.2%，
-     這樣四張照片就會自動向上/向下擴展，使中間的間距收緊約 0.7 公分！ */
-  height: 21.2%; 
+  position: absolute;
+  left: 20px;       /* 左右置中留白 20px */
+  width: 200px;     /* 照片固定寬度 (對應原圖 500px) */
+  height: 138px;    /* 照片固定高度 (對應原圖 345px) */
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
@@ -46,6 +37,29 @@
   height: 100% !important;
   object-fit: cover !important;
   transition: filter 0.3s ease;
+}
+
+/* ---------------------------------------------------------
+   🎯 座標精密設定 (相鄰間距 14px ≒ 0.5 公分)
+   --------------------------------------------------------- */
+/* 第 1 張照片 */
+.photo-frame:nth-child(1) {
+  top: 50px;
+}
+
+/* 第 2 張照片：50 + 138 (照片高) + 14 (間距 0.5cm) = 202px */
+.photo-frame:nth-child(2) {
+  top: 202px;
+}
+
+/* 第 3 張照片：202 + 138 (照片高) + 14 (間距 0.5cm) = 354px */
+.photo-frame:nth-child(3) {
+  top: 354px;
+}
+
+/* 第 4 張照片：354 + 138 (照片高) + 14 (間距 0.5cm) = 506px */
+.photo-frame:nth-child(4) {
+  top: 506px;
 }
 
 #frame-overlay {
