@@ -1,5 +1,5 @@
 /* =========================================================
-   1. 全域與基礎版面樣式
+   1. 星空背景與全域樣式
    ========================================================= */
 * {
   box-sizing: border-box;
@@ -9,23 +9,48 @@
 }
 
 body {
-  background-color: #1a1a24;
+  /* 星空漸層背景 */
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   color: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 靜態星星圖層裝飾 */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 300px 60px, #ffffff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 350px 350px;
+  opacity: 0.6;
+  z-index: 0;
 }
 
 .container {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 30px;
-  background: #242530;
+  background: rgba(23, 25, 38, 0.85);
+  backdrop-filter: blur(10px);
   padding: 30px;
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
   max-width: 950px;
   width: 100%;
 }
@@ -34,8 +59,10 @@ h1 {
   width: 100%;
   text-align: center;
   font-size: 24px;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-bottom: 10px;
+  color: #e2e8f0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .controls-panel, .preview-panel {
@@ -56,7 +83,7 @@ h1 {
   background: #000;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid #3a3f50;
+  border: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 #webcam {
@@ -95,11 +122,12 @@ h1 {
 }
 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn.primary { background: #ff8c00; color: white; }
-.btn.secondary { background: #3a3f50; color: white; }
-.btn.success { background: #00b894; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
+.btn.primary { background: #6366f1; color: white; }
+.btn.primary:hover:not(:disabled) { background: #4f46e5; }
+.btn.secondary { background: #334155; color: white; }
+.btn.success { background: #10b981; color: white; margin-top: 15px; width: 100%; font-size: 16px; }
+.btn.success:hover:not(:disabled) { background: #059669; }
 
-/* 相框選擇卡片 */
 .frame-picker {
   margin-top: 20px;
   width: 100%;
@@ -107,20 +135,20 @@ h1 {
 
 .frame-picker label {
   font-size: 14px;
-  color: #bbb;
+  color: #94a3b8;
   margin-bottom: 8px;
   display: block;
 }
 
 .frames {
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
 
 .frame-option {
   flex: 1;
-  height: 70px;
-  background: #1a1a24;
+  height: 80px;
+  background: #0f172a;
   border: 2px solid transparent;
   border-radius: 8px;
   cursor: pointer;
@@ -128,7 +156,6 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
   transition: 0.2s;
 }
 
@@ -139,35 +166,36 @@ h1 {
 }
 
 .frame-option.active {
-  border-color: #ff8c00;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
 /* =========================================================
-   3. 核心圖層架構 (照片在下 z-index:1, 相框 PNG 在上 z-index:2)
+   3. 拍貼框圖層結構 (照片在下 z-index:1, 相框直接蓋在最上面 z-index:2)
    ========================================================= */
 #photo-strip {
   position: relative;
-  width: 240px;  /* 對應原圖 600px 比例 */
-  height: 720px; /* 對應原圖 1800px 比例 */
+  width: 240px;  /* 對應 600px 原圖 */
+  height: 720px; /* 對應 1800px 原圖 */
   background-color: transparent;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
 }
 
-/* 下層：照片層 */
+/* 下層：照片圖層 */
 .photo-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 1; /* 照片在下 */
 }
 
 .photo-frame {
   position: absolute;
   overflow: hidden;
-  background-color: #111;
+  background-color: #000000;
 }
 
 .photo-frame canvas {
@@ -176,7 +204,7 @@ h1 {
   object-fit: cover;
 }
 
-/* 上層：透明 PNG 相框 */
+/* 上層：透明 PNG 相框 (無任何特殊 Blend 效果，直接蓋在上面) */
 #frame-overlay {
   position: absolute;
   top: 0;
@@ -184,119 +212,45 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: fill;
-  z-index: 2;
+  z-index: 2; /* 蓋在最上面 */
   pointer-events: none;
 }
 
 /* =========================================================
-   4. 📏 依 600*1800 與 500*345 精密計算的座標位置
+   4. 📏 精密位置計算：
+      - 第一張照片距離頂端 3.15cm (網頁比例下為 148.8px)
+      - 照片尺寸 500*345px (網頁比例下為 200px * 138px)
+      - 照片之間間距 0.73cm (網頁比例下為 34.5px)
    ========================================================= */
 
-/* ---------------------------------------------------------
-   [暖色異形框 frame_warm.png] (EXO_2)
-   依照原圖異形圓洞的垂直間距微調
-   --------------------------------------------------------- */
-#photo-strip.frame-warm-active .photo-frame:nth-child(1) {
-  top: 66px;
-  left: 20px;
-  width: 200px;  /* 500px * 0.4 */
-  height: 138px; /* 345px * 0.4 */
-}
-
-#photo-strip.frame-warm-active .photo-frame:nth-child(2) {
-  top: 212px;
+/* 第 1 張：頂端 148.8px */
+.photo-frame:nth-child(1) {
+  top: 148.8px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-#photo-strip.frame-warm-active .photo-frame:nth-child(3) {
-  top: 358px;
+/* 第 2 張：148.8 + 138 + 34.5 = 321.3px */
+.photo-frame:nth-child(2) {
+  top: 321.3px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-#photo-strip.frame-warm-active .photo-frame:nth-child(4) {
-  top: 504px;
+/* 第 3 張：321.3 + 138 + 34.5 = 493.8px */
+.photo-frame:nth-child(3) {
+  top: 493.8px;
   left: 20px;
   width: 200px;
   height: 138px;
 }
 
-/* ---------------------------------------------------------
-   [銀河藍圓角框 frame_cool.png] (EXO_1)
-   均勻分布於相框留白區域
-   --------------------------------------------------------- */
-#photo-strip.frame-cool-active .photo-frame:nth-child(1) {
-  top: 38px;
-  left: 20px;
-  width: 200px;  /* 500px * 0.4 */
-  height: 138px; /* 345px * 0.4 */
-}
-
-#photo-strip.frame-cool-active .photo-frame:nth-child(2) {
-  top: 188px;
+/* 第 4 張：493.8 + 138 + 34.5 = 666.3px (若超出可由最底部 PNG 自然裁切) */
+.photo-frame:nth-child(4) {
+  top: 666.3px;
   left: 20px;
   width: 200px;
   height: 138px;
-}
-
-#photo-strip.frame-cool-active .photo-frame:nth-child(3) {
-  top: 338px;
-  left: 20px;
-  width: 200px;
-  height: 138px;
-}
-
-#photo-strip.frame-cool-active .photo-frame:nth-child(4) {
-  top: 488px;
-  left: 20px;
-  width: 200px;
-  height: 138px;
-}
-
-/* ---------------------------------------------------------
-   [純白預設框]
-   --------------------------------------------------------- */
-#photo-strip.frame-white-active {
-  background-color: #ffffff;
-}
-
-#photo-strip.frame-white-active .photo-layer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 15px;
-  padding-top: 20px;
-}
-
-#photo-strip.frame-white-active .photo-frame {
-  position: relative;
-  top: auto; left: auto;
-  width: 200px;
-  height: 138px;
-}
-
-#photo-strip.frame-white-active #frame-overlay {
-  display: none;
-}
-
-.strip-footer {
-  display: none;
-  position: absolute;
-  bottom: 15px;
-  width: 100%;
-  text-align: center;
-  color: #333;
-  font-size: 12px;
-  font-weight: bold;
-  z-index: 1;
-}
-
-#photo-strip.frame-white-active .strip-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
 }
