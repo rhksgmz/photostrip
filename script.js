@@ -1,515 +1,389 @@
-// ==========================================
-// 🔴 Firebase 累積拍攝次數即時同步設定
-// ==========================================
-const firebaseConfig = {
-  databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
-};
-try {
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const totalShotsEl = document.getElementById('total-shots');
-  db.ref('stats/totalShots').on('value', (snapshot) => {
-    const val = snapshot.val();
-    if (val !== null && totalShotsEl) {
-      totalShotsEl.innerText = val;
-    } else if (totalShotsEl) {
-      db.ref('stats/totalShots').set(128);
-    }
-  });
-} catch (e) {
-  console.log("Firebase 初始化略過：", e);
-}
-
-
-// ==========================================
-// 📸 拍貼機核心程式碼
-// ==========================================
-const webcam = document.getElementById('webcam');
-const startBtn = document.getElementById('start-btn');
-const retakeBtn = document.getElementById('retake-btn');
-const downloadBtn = document.getElementById('download-btn');
-const downloadVideoBtn = document.getElementById('download-video-btn');
-const countdownOverlay = document.getElementById('countdown-overlay');
-const flashEffect = document.getElementById('flash-effect');
-const flipBtn = document.getElementById('flip-btn');
-
-const photoStrip = document.getElementById('photo-strip');
-const photoLayer = document.querySelector('.photo-layer');
-const frameOverlay = document.getElementById('frame-overlay');
-const finalResultImg = document.getElementById('final-result-img');
-const frameOptions = document.querySelectorAll('.frame-option');
-
-const videoRecordCanvas = document.getElementById('video-record-canvas');
-const recordCtx = videoRecordCanvas.getContext('2d');
-
-const musicBtn = document.getElementById('music-btn');
-const musicIcon = document.getElementById('music-icon');
-const musicText = document.getElementById('music-text');
-
-let player;
-let isPlaying = false;
-let currentFacingMode = 'user'; 
-let mediaRecorder = null;
-let recordedChunks = [];
-let recordedVideoBlob = null;
-let audioCtx = null;
-let isRecordingActive = false;
-
-// 🎯 四格與三格 PNG 相框的挖孔座標與大小
-const FRAME_CONFIGS = {
-  4: {
-    positions: [
-      { left: 18, top: 32, width: 204, height: 141 },
-      { left: 18, top: 178.8, width: 204, height: 141 },
-      { left: 18, top: 325.6, width: 204, height: 141 },
-      { left: 18, top: 472.4, width: 204, height: 141 }
-    ]
-  },
-  3: {
-    positions: [
-      { left: 24, top: 38, width: 192, height: 155 },   // 第一格
-      { left: 24, top: 228, width: 192, height: 165 },  // 第二格
-      { left: 24, top: 432, width: 192, height: 185 }   // 第三格
-    ]
-  }
-};
-
-let currentSlots = 4;
-let PHOTO_POSITIONS = FRAME_CONFIGS[4].positions;
-let canvases = [
-  document.getElementById('canvas1'),
-  document.getElementById('canvas2'),
-  document.getElementById('canvas3'),
-  document.getElementById('canvas4')
-];
-
-// 1. YouTube BGM
-function onYouTubeIframeAPIReady() {
+document.addEventListener('DOMContentLoaded', () => {
+  // ==========================================
+  // 🔴 Firebase 累積拍攝次數即時同步設定
+  // ==========================================
   try {
-    player = new YT.Player('yt-player', {
-      height: '1',
-      width: '1',
-      playerVars: {
-        'listType': 'playlist',
-        'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks',
-        'autoplay': 0,
-        'controls': 0,
-        'loop': 1
-      },
-      events: {
-        'onReady': onPlayerReady
-      }
-    });
-  } catch (e) {
-    console.log("YouTube API 載入略過：", e);
-  }
-}
-
-function onPlayerReady(event) {
-  try {
-    event.target.setVolume(40);
-    if (typeof player.setShuffle === 'function') {
-      player.setShuffle(true);
-    }
-  } catch (e) {}
-}
-
-function toggleMusic() {
-  if (!player || typeof player.playVideo !== 'function') return;
-
-  if (isPlaying) {
-    player.pauseVideo();
-    musicBtn.classList.remove('playing');
-    musicIcon.innerText = '🔇';
-    musicText.innerText = 'PAUSED';
-    isPlaying = false;
-  } else {
-    if (typeof player.nextVideo === 'function') {
-      player.nextVideo();
-    }
-    player.playVideo();
-    musicBtn.classList.add('playing');
-    musicIcon.innerText = '🔊';
-    musicText.innerText = 'PLAYING';
-    isPlaying = true;
-  }
-}
-
-musicBtn.addEventListener('click', toggleMusic);
-
-// 2. 音效解鎖
-function playPrintingSound() {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
-    const bufferSize = audioCtx.sampleRate * 1.6;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 400;
-    filter.Q.value = 3;
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.2);
-    gainNode.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 1.2);
-    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.6);
-
-    noise.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    noise.start();
-    noise.stop(audioCtx.currentTime + 1.6);
-  } catch (e) {
-    console.log("音效播放支援受限：", e);
-  }
-}
-
-// 3. 相機設定與翻轉 (加強防呆)
-function initCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert("您的瀏覽器不支援相機功能，請使用 Chrome 或 Safari 開啟！");
-    return;
-  }
-
-  if (webcam.srcObject) {
-    webcam.srcObject.getTracks().forEach(track => track.stop());
-  }
-
-  navigator.mediaDevices.getUserMedia({ 
-    video: { 
-      width: { ideal: 1280 }, 
-      height: { ideal: 960 }, 
-      facingMode: currentFacingMode 
-    } 
-  })
-  .then(stream => { 
-    webcam.srcObject = stream;
-    webcam.play().catch(e => console.log("自動播放被攔截：", e));
-  })
-  .catch(err => {
-    console.log("高畫質相機開啟失敗，嘗試一般畫質...", err);
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => { 
-        webcam.srcObject = stream;
-        webcam.play().catch(e => console.log("自動播放被攔截：", e));
-      })
-      .catch(e => {
-        alert("無法開啟相機，請確認是否已授權相機權限，或網址為 HTTPS 安全連線！");
-      });
-  });
-}
-
-flipBtn.addEventListener('click', () => {
-  currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-  initCamera();
-});
-
-// 網頁載入後立即初始化相機
-window.addEventListener('DOMContentLoaded', () => {
-  initCamera();
-});
-
-// 🎯 相框切換事件
-let hasShot = false;
-
-frameOptions.forEach(option => {
-  option.addEventListener('click', (e) => {
-    if (hasShot) return;
-    
-    const activeOld = document.querySelector('.frame-option.active');
-    if (activeOld) activeOld.classList.remove('active');
-    
-    const targetOption = e.currentTarget;
-    targetOption.classList.add('active');
-
-    const selectedFrame = targetOption.getAttribute('data-frame');
-    const slots = parseInt(targetOption.getAttribute('data-slots')) || 4;
-
-    currentSlots = slots;
-    PHOTO_POSITIONS = FRAME_CONFIGS[slots].positions;
-
-    // 動態重繪 DOM 中的 Canvas 數量與座標
-    photoLayer.innerHTML = '';
-    for (let i = 0; i < slots; i++) {
-      const pos = PHOTO_POSITIONS[i];
-      photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px; display: flex;"><canvas id="canvas${i + 1}"></canvas></div>`;
-    }
-
-    canvases = [];
-    for (let i = 1; i <= slots; i++) {
-      canvases.push(document.getElementById(`canvas${i}`));
-    }
-
-    startBtn.innerText = `2. 開始連拍 (${slots}張)`;
-    frameOverlay.src = `${selectedFrame}.png`;
-  });
-});
-
-function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
-  const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
-  const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
-  const videoAspect = vWidth / vHeight;
-  const targetAspect = targetWidth / targetHeight;
-
-  let sWidth, sHeight, sx, sy;
-  if (videoAspect > targetAspect) {
-    sHeight = vHeight;
-    sWidth = vHeight * targetAspect;
-    sx = (vWidth - sWidth) / 2;
-    sy = 0;
-  } else {
-    sWidth = vWidth;
-    sHeight = vWidth / targetAspect;
-    sx = 0;
-    sy = (vHeight - sHeight) / 2;
-  }
-
-  ctx.save();
-  if (isLiveVideo && activeFacing === 'user') {
-    ctx.translate(targetWidth, 0);
-    ctx.scale(-1, 1);
-  }
-
-  ctx.drawImage(sourceVideoOrCanvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-  ctx.restore();
-}
-
-function takePhoto(canvas) {
-  if (!canvas) return;
-  const targetWidth = canvas.width || 510;
-  const targetHeight = canvas.height || 352;
-  const ctx = canvas.getContext('2d');
-  renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
-}
-
-function renderAllActiveFrames(currentActiveIndex) {
-  recordCtx.clearRect(0, 0, 240, 720);
-
-  PHOTO_POSITIONS.forEach((pos, idx) => {
-    recordCtx.save();
-    recordCtx.beginPath();
-    if (typeof recordCtx.roundRect === 'function') {
-      recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
-    } else {
-      recordCtx.rect(pos.left, pos.top, pos.width, pos.height);
-    }
-    recordCtx.clip();
-
-    const sourceToDraw = (idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0) ? canvases[idx] : webcam;
-    const isLive = !(idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0);
-
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = pos.width;
-    tempCanvas.height = pos.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    
-    renderFrameToContext(tempCtx, pos.width, pos.height, sourceToDraw, isLive, currentFacingMode);
-    recordCtx.drawImage(tempCanvas, pos.left, pos.top);
-    recordCtx.restore();
-  });
-
-  if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
-    recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
-  }
-}
-
-function startRecordingLoop(currentActiveIndex) {
-  if (!isRecordingActive) return;
-  renderAllActiveFrames(currentActiveIndex);
-  requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
-}
-
-// 🎯 5 秒倒數計時器
-function run5SecCountdown(seconds) {
-  return new Promise(resolve => {
-    let count = seconds;
-    countdownOverlay.innerText = count;
-    void countdownOverlay.offsetHeight;
-
-    const timer = setInterval(() => {
-      count--;
-      if (count > 0) {
-        countdownOverlay.innerText = count;
-        void countdownOverlay.offsetHeight;
-      } else {
-        clearInterval(timer);
-        countdownOverlay.innerText = '';
-        resolve();
-      }
-    }, 1000);
-  });
-}
-
-async function startPhotography() {
-  if (player && typeof player.playVideo === 'function') {
-    if (!isPlaying) {
-      if (typeof player.nextVideo === 'function') {
-        player.nextVideo();
-      }
-      player.playVideo();
-      musicBtn.classList.add('playing');
-      musicIcon.innerText = '🔊';
-      musicText.innerText = 'PLAYING';
-      isPlaying = true;
-    }
-  }
-
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  } catch (e) {}
-
-  startBtn.disabled = true;
-  retakeBtn.disabled = true;
-  downloadBtn.disabled = true;
-  downloadVideoBtn.disabled = true;
-  finalResultImg.style.display = 'none';
-  finalResultImg.classList.remove('printing-animation');
-  hasShot = false;
-  recordedChunks = [];
-
-  canvases.forEach((c, idx) => {
-    if (c && PHOTO_POSITIONS[idx]) {
-      c.width = PHOTO_POSITIONS[idx].width * 2;
-      c.height = PHOTO_POSITIONS[idx].height * 2;
-      c.getContext('2d').clearRect(0, 0, c.width, c.height);
-    }
-  });
-
-  if (videoRecordCanvas.captureStream && window.MediaRecorder) {
-    try {
-      const recordStream = videoRecordCanvas.captureStream(30);
-      let options = {};
-      if (MediaRecorder.isTypeSupported('video/mp4')) {
-        options = { mimeType: 'video/mp4' };
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        options = { mimeType: 'video/webm' };
-      }
-
-      mediaRecorder = new MediaRecorder(recordStream, options);
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-      };
-      mediaRecorder.start(100);
-      isRecordingActive = true;
-    } catch (e) {
-      console.log("錄影不支援：", e);
-    }
-  }
-
-  for (let i = 0; i < currentSlots; i++) {
-    startRecordingLoop(i);
-    await run5SecCountdown(5); // 每格 5 秒
-    
-    isRecordingActive = false;
-    triggerFlash();
-    takePhoto(canvases[i]); 
-    isRecordingActive = true;
-  }
-
-  isRecordingActive = false;
-  await new Promise(r => setTimeout(r, 1000));
-
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    mediaRecorder.onstop = () => {
-      const mime = mediaRecorder.mimeType || 'video/mp4';
-      recordedVideoBlob = new Blob(recordedChunks, { type: mime });
-      downloadVideoBtn.disabled = false;
+    const firebaseConfig = {
+      databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const totalShotsEl = document.getElementById('total-shots');
+    db.ref('stats/totalShots').on('value', (snapshot) => {
+      const val = snapshot.val();
+      if (val !== null && totalShotsEl) {
+        totalShotsEl.innerText = val;
+      } else if (totalShotsEl) {
+        db.ref('stats/totalShots').set(128);
+      }
+    });
+  } catch (e) {
+    console.log("Firebase 略過：", e);
   }
 
-  hasShot = true;
-  generateFinalImage();
+  // ==========================================
+  // 📸 拍貼機核心程式碼
+  // ==========================================
+  const webcam = document.getElementById('webcam');
+  const startBtn = document.getElementById('start-btn');
+  const retakeBtn = document.getElementById('retake-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const downloadVideoBtn = document.getElementById('download-video-btn');
+  const countdownOverlay = document.getElementById('countdown-overlay');
+  const flashEffect = document.getElementById('flash-effect');
+  const flipBtn = document.getElementById('flip-btn');
 
-  try {
-    db.ref('stats/totalShots').transaction((current) => {
-      return (current || 128) + 1;
+  const photoStrip = document.getElementById('photo-strip');
+  const photoLayer = document.querySelector('.photo-layer');
+  const frameOverlay = document.getElementById('frame-overlay');
+  const finalResultImg = document.getElementById('final-result-img');
+  const frameOptions = document.querySelectorAll('.frame-option');
+
+  const videoRecordCanvas = document.getElementById('video-record-canvas');
+  const recordCtx = videoRecordCanvas.getContext('2d');
+
+  const musicBtn = document.getElementById('music-btn');
+  const musicIcon = document.getElementById('music-icon');
+  const musicText = document.getElementById('music-text');
+
+  let player = null;
+  let isPlaying = false;
+  let currentFacingMode = 'user'; 
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedVideoBlob = null;
+  let audioCtx = null;
+  let isRecordingActive = false;
+
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小
+  const FRAME_CONFIGS = {
+    4: {
+      positions: [
+        { left: 18, top: 32, width: 204, height: 141 },
+        { left: 18, top: 178.8, width: 204, height: 141 },
+        { left: 18, top: 325.6, width: 204, height: 141 },
+        { left: 18, top: 472.4, width: 204, height: 141 }
+      ]
+    },
+    3: {
+      positions: [
+        { left: 24, top: 38, width: 192, height: 155 },
+        { left: 24, top: 228, width: 192, height: 165 },
+        { left: 24, top: 432, width: 192, height: 185 }
+      ]
+    }
+  };
+
+  let currentSlots = 4;
+  let PHOTO_POSITIONS = FRAME_CONFIGS[4].positions;
+  let canvases = [
+    document.getElementById('canvas1'),
+    document.getElementById('canvas2'),
+    document.getElementById('canvas3'),
+    document.getElementById('canvas4')
+  ];
+
+  // 3. 相機設定與翻轉
+  function initCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("您的瀏覽器不支援相機功能！");
+      return;
+    }
+
+    if (webcam.srcObject) {
+      webcam.srcObject.getTracks().forEach(track => track.stop());
+    }
+
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: { ideal: 1280 }, 
+        height: { ideal: 960 }, 
+        facingMode: currentFacingMode 
+      } 
+    })
+    .then(stream => { 
+      webcam.srcObject = stream;
+      webcam.play().catch(e => console.log(e));
+    })
+    .catch(err => {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => { 
+          webcam.srcObject = stream;
+          webcam.play().catch(e => console.log(e));
+        })
+        .catch(e => {
+          alert("無法開啟相機，請確認是否授權相機權限或使用 HTTPS 連線！");
+        });
     });
-  } catch (e) {}
+  }
 
-  startBtn.disabled = false;
-  retakeBtn.disabled = false;
-  downloadBtn.disabled = false;
-}
-
-function triggerFlash() {
-  flashEffect.classList.add('flash-active');
-  setTimeout(() => {
-    flashEffect.classList.remove('flash-active');
-  }, 120);
-}
-
-function generateFinalImage() {
-  html2canvas(photoStrip, { 
-    scale: 2, 
-    useCORS: true,
-    backgroundColor: null
-  }).then(canvas => {
-    const dataUrl = canvas.toDataURL('image/png');
-    finalResultImg.src = dataUrl;
-    finalResultImg.style.display = 'block';
-    
-    playPrintingSound();
-    finalResultImg.classList.add('printing-animation');
-  }).catch(err => {
-    console.log("截圖失敗：", err);
-    alert("手機生成圖片時發生錯誤，請重新整理後再試一次！");
+  flipBtn.addEventListener('click', () => {
+    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+    initCamera();
   });
-}
 
-retakeBtn.addEventListener('click', () => {
-  canvases.forEach(canvas => {
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  initCamera();
+
+  // 🎯 相框切換事件
+  let hasShot = false;
+
+  frameOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+      if (hasShot) return;
+      
+      const activeOld = document.querySelector('.frame-option.active');
+      if (activeOld) activeOld.classList.remove('active');
+      
+      const targetOption = e.currentTarget;
+      targetOption.classList.add('active');
+
+      const selectedFrame = targetOption.getAttribute('data-frame');
+      const slots = parseInt(targetOption.getAttribute('data-slots')) || 4;
+
+      currentSlots = slots;
+      PHOTO_POSITIONS = FRAME_CONFIGS[slots].positions;
+
+      photoLayer.innerHTML = '';
+      for (let i = 0; i < slots; i++) {
+        const pos = PHOTO_POSITIONS[i];
+        photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px; display: flex;"><canvas id="canvas${i + 1}"></canvas></div>`;
+      }
+
+      canvases = [];
+      for (let i = 1; i <= slots; i++) {
+        canvases.push(document.getElementById(`canvas${i}`));
+      }
+
+      startBtn.innerText = `2. 開始連拍 (${slots}張)`;
+      frameOverlay.src = `${selectedFrame}.png`;
+    });
+  });
+
+  function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
+    const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
+    const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
+    const videoAspect = vWidth / vHeight;
+    const targetAspect = targetWidth / targetHeight;
+
+    let sWidth, sHeight, sx, sy;
+    if (videoAspect > targetAspect) {
+      sHeight = vHeight;
+      sWidth = vHeight * targetAspect;
+      sx = (vWidth - sWidth) / 2;
+      sy = 0;
+    } else {
+      sWidth = vWidth;
+      sHeight = vWidth / targetAspect;
+      sx = 0;
+      sy = (vHeight - sHeight) / 2;
+    }
+
+    ctx.save();
+    if (isLiveVideo && activeFacing === 'user') {
+      ctx.translate(targetWidth, 0);
+      ctx.scale(-1, 1);
+    }
+
+    ctx.drawImage(sourceVideoOrCanvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
+    ctx.restore();
+  }
+
+  function takePhoto(canvas) {
+    if (!canvas) return;
+    const targetWidth = canvas.width || 510;
+    const targetHeight = canvas.height || 352;
+    const ctx = canvas.getContext('2d');
+    renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
+  }
+
+  function renderAllActiveFrames(currentActiveIndex) {
+    recordCtx.clearRect(0, 0, 240, 720);
+
+    PHOTO_POSITIONS.forEach((pos, idx) => {
+      recordCtx.save();
+      recordCtx.beginPath();
+      if (typeof recordCtx.roundRect === 'function') {
+        recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
+      } else {
+        recordCtx.rect(pos.left, pos.top, pos.width, pos.height);
+      }
+      recordCtx.clip();
+
+      const sourceToDraw = (idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0) ? canvases[idx] : webcam;
+      const isLive = !(idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0);
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = pos.width;
+      tempCanvas.height = pos.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      renderFrameToContext(tempCtx, pos.width, pos.height, sourceToDraw, isLive, currentFacingMode);
+      recordCtx.drawImage(tempCanvas, pos.left, pos.top);
+      recordCtx.restore();
+    });
+
+    if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
+      recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
+    }
+  }
+
+  function startRecordingLoop(currentActiveIndex) {
+    if (!isRecordingActive) return;
+    renderAllActiveFrames(currentActiveIndex);
+    requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
+  }
+
+  function run5SecCountdown(seconds) {
+    return new Promise(resolve => {
+      let count = seconds;
+      countdownOverlay.innerText = count;
+      void countdownOverlay.offsetHeight;
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownOverlay.innerText = count;
+          void countdownOverlay.offsetHeight;
+        } else {
+          clearInterval(timer);
+          countdownOverlay.innerText = '';
+          resolve();
+        }
+      }, 1000);
+    });
+  }
+
+  async function startPhotography() {
+    startBtn.disabled = true;
+    retakeBtn.disabled = true;
+    downloadBtn.disabled = true;
+    downloadVideoBtn.disabled = true;
+    finalResultImg.style.display = 'none';
+    finalResultImg.classList.remove('printing-animation');
+    hasShot = false;
+    recordedChunks = [];
+
+    canvases.forEach((c, idx) => {
+      if (c && PHOTO_POSITIONS[idx]) {
+        c.width = PHOTO_POSITIONS[idx].width * 2;
+        c.height = PHOTO_POSITIONS[idx].height * 2;
+        c.getContext('2d').clearRect(0, 0, c.width, c.height);
+      }
+    });
+
+    if (videoRecordCanvas.captureStream && window.MediaRecorder) {
+      try {
+        const recordStream = videoRecordCanvas.captureStream(30);
+        let options = {};
+        if (MediaRecorder.isTypeSupported('video/mp4')) {
+          options = { mimeType: 'video/mp4' };
+        } else if (MediaRecorder.isTypeSupported('video/webm')) {
+          options = { mimeType: 'video/webm' };
+        }
+
+        mediaRecorder = new MediaRecorder(recordStream, options);
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.start(100);
+        isRecordingActive = true;
+      } catch (e) {
+        console.log("錄影不支援：", e);
+      }
+    }
+
+    for (let i = 0; i < currentSlots; i++) {
+      startRecordingLoop(i);
+      await run5SecCountdown(5);
+      
+      isRecordingActive = false;
+      triggerFlash();
+      takePhoto(canvases[i]); 
+      isRecordingActive = true;
+    }
+
+    isRecordingActive = false;
+    await new Promise(r => setTimeout(r, 1000));
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      mediaRecorder.onstop = () => {
+        const mime = mediaRecorder.mimeType || 'video/mp4';
+        recordedVideoBlob = new Blob(recordedChunks, { type: mime });
+        downloadVideoBtn.disabled = false;
+      };
+    }
+
+    hasShot = true;
+    generateFinalImage();
+
+    try {
+      firebase.database().ref('stats/totalShots').transaction((current) => {
+        return (current || 128) + 1;
+      });
+    } catch (e) {}
+
+    startBtn.disabled = false;
+    retakeBtn.disabled = false;
+    downloadBtn.disabled = false;
+  }
+
+  function triggerFlash() {
+    flashEffect.classList.add('flash-active');
+    setTimeout(() => {
+      flashEffect.classList.remove('flash-active');
+    }, 120);
+  }
+
+  function generateFinalImage() {
+    html2canvas(photoStrip, { 
+      scale: 2, 
+      useCORS: true,
+      backgroundColor: null
+    }).then(canvas => {
+      const dataUrl = canvas.toDataURL('image/png');
+      finalResultImg.src = dataUrl;
+      finalResultImg.style.display = 'block';
+      finalResultImg.classList.add('printing-animation');
+    }).catch(err => {
+      alert("生成圖片時發生錯誤！");
+    });
+  }
+
+  retakeBtn.addEventListener('click', () => {
+    canvases.forEach(canvas => {
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    });
+    finalResultImg.style.display = 'none';
+    finalResultImg.classList.remove('printing-animation');
+    hasShot = false;
+    downloadBtn.disabled = true;
+    downloadVideoBtn.disabled = true;
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if (finalResultImg.src && hasShot) {
+      const link = document.createElement('a');
+      link.download = `EXhOrizon_${Date.now()}.png`;
+      link.href = finalResultImg.src;
+      link.click();
     }
   });
-  finalResultImg.style.display = 'none';
-  finalResultImg.classList.remove('printing-animation');
-  hasShot = false;
-  downloadBtn.disabled = true;
-  downloadVideoBtn.disabled = true;
-});
 
-downloadBtn.addEventListener('click', () => {
-  if (finalResultImg.src && hasShot) {
-    const link = document.createElement('a');
-    link.download = `EXhOrizon_${Date.now()}.png`;
-    link.href = finalResultImg.src;
-    link.click();
-  }
-});
+  downloadVideoBtn.addEventListener('click', () => {
+    if (recordedVideoBlob) {
+      const url = URL.createObjectURL(recordedVideoBlob);
+      const a = document.createElement('a');
+      const ext = recordedVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      a.href = url;
+      a.download = `EXhOrizon_video_${Date.now()}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  });
 
-downloadVideoBtn.addEventListener('click', () => {
-  if (recordedVideoBlob) {
-    const url = URL.createObjectURL(recordedVideoBlob);
-    const a = document.createElement('a');
-    const ext = recordedVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
-    a.href = url;
-    a.download = `EXhOrizon_video_${Date.now()}.${ext}`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  startBtn.addEventListener('click', startPhotography);
 });
-
-startBtn.addEventListener('click', startPhotography);
