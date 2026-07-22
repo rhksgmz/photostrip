@@ -180,7 +180,7 @@
       opacity: 0.95;
     }
 
-    /* 🎯 確保倒數數字層級最高，絕對不被遮擋 */
+    /* 🎯 倒數數字層級設到最高 */
     #countdown-overlay {
       position: absolute;
       top: 50%; left: 50%;
@@ -369,7 +369,7 @@
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 (圖層設在最上層 z-index: 20) */
+    /* 🎞️ 復古印相輸出浮現特效 */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
@@ -454,7 +454,6 @@
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
           <div id="flash-effect"></div>
-          <!-- 🎯 倒數數字放置於相機畫面內最上層 -->
           <div id="countdown-overlay"></div>
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
