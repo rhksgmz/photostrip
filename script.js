@@ -16,14 +16,14 @@ const musicText = document.getElementById('music-text');
 let player;
 let isPlaying = false;
 
-// 1. 載入 YouTube 官方播放器 API
+// 1. 載入 YouTube 官方播放器 API 並設定「隨機播放 (Shuffle)」
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('yt-player', {
     height: '1',
     width: '1',
     playerVars: {
       'listType': 'playlist',
-      'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks', // 你提供的 EXO 歌單 ID
+      'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks', // EXO 歌單 ID
       'autoplay': 0,
       'controls': 0,
       'loop': 1
@@ -36,9 +36,14 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
   event.target.setVolume(40); // 預設音量 40%
+  
+  // 🎯 啟用歌單隨機播放 (Shuffle)
+  if (typeof player.setShuffle === 'function') {
+    player.setShuffle(true);
+  }
 }
 
-// 2. 音樂按鈕點擊開關
+// 2. 音樂開關按鈕控制 (若為暫停狀態點擊播放，會自動跳至隨機曲目)
 function toggleMusic() {
   if (!player || typeof player.playVideo !== 'function') return;
 
@@ -49,6 +54,10 @@ function toggleMusic() {
     musicText.innerText = 'PAUSED';
     isPlaying = false;
   } else {
+    // 每次點擊播放時跳至歌單隨機下一首
+    if (typeof player.nextVideo === 'function') {
+      player.nextVideo();
+    }
     player.playVideo();
     musicBtn.classList.add('playing');
     musicIcon.innerText = '🔊';
@@ -59,9 +68,12 @@ function toggleMusic() {
 
 musicBtn.addEventListener('click', toggleMusic);
 
-// 點擊頁面任意處自動開始播放歌單
+// 點擊頁面任意處自動觸發隨機播放
 document.body.addEventListener('click', () => {
   if (!isPlaying && player && typeof player.playVideo === 'function') {
+    if (typeof player.nextVideo === 'function') {
+      player.nextVideo();
+    }
     player.playVideo();
     musicBtn.classList.add('playing');
     musicIcon.innerText = '🔊';
@@ -70,7 +82,7 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 3. 開啟相機
+// 3. 相機設定與照片流程
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
