@@ -6,7 +6,6 @@ const downloadVideoBtn = document.getElementById('download-video-btn');
 const countdownOverlay = document.getElementById('countdown-overlay');
 const flashEffect = document.getElementById('flash-effect');
 const flipBtn = document.getElementById('flip-btn');
-const filterSelect = document.getElementById('filter-select');
 
 const photoStrip = document.getElementById('photo-strip');
 const frameOverlay = document.getElementById('frame-overlay');
@@ -26,7 +25,6 @@ let currentFacingMode = 'user';
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
-let currentFilter = 'none';
 let recordAnimationId = null;
 
 // 精確的相框內 4 張照片成像位置
@@ -98,7 +96,47 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 2. 相機設定與翻轉
+// 2. 模擬拍貼機印相運作機械聲音 (使用 Web Audio API 即時合成逼真滾軸運作聲)
+function playPrintingSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // 建立機械滾軸雜訊 (White Noise)
+    const bufferSize = audioCtx.sampleRate * 1.6; // 1.6 秒的列印聲
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    // 低通濾調器 (模擬馬達低沉運轉聲)
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 3;
+
+    // 音量包絡線 (逐漸加速又停止)
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.2);
+    gainNode.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 1.2);
+    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.6);
+
+    noise.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    noise.start();
+    noise.stop(audioCtx.currentTime + 1.6);
+  } catch (e) {
+    console.log("音效播放支援受限：", e);
+  }
+}
+
+// 3. 相機設定與翻轉
 function initCamera() {
   if (webcam.srcObject) {
     webcam.srcObject.getTracks().forEach(track => track.stop());
@@ -127,56 +165,6 @@ flipBtn.addEventListener('click', () => {
 });
 
 initCamera();
-
-// 3. 濾鏡切換
-filterSelect.addEventListener('change', (e) => {
-  currentFilter = e.target.value;
-  // 即時預覽畫面套用對應樣式
-  applyCSSFilter(webcam, currentFilter);
-});
-
-function applyCSSFilter(element, filterType) {
-  if (filterType === 'bw') {
-    element.style.filter = 'grayscale(100%) contrast(110%)';
-  } else if (filterType === 'vintage') {
-    element.style.filter = 'sepia(25%) contrast(95%) brightness(105%)';
-  } else if (filterType === 'vivid') {
-    element.style.filter = 'saturate(135%) contrast(105%)';
-  } else {
-    element.style.filter = 'none';
-  }
-}
-
-// 🎯 高相容性像素級濾鏡算法（保證 100% 寫入成品與影片中）
-function applyPixelFilter(ctx, width, height, filterType) {
-  if (filterType === 'none') return;
-
-  const imgData = ctx.getImageData(0, 0, width, height);
-  const data = imgData.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i];
-    let g = data[i + 1];
-    let b = data[i + 2];
-
-    if (filterType === 'bw') {
-      let avg = 0.299 * r + 0.587 * g + 0.114 * b;
-      avg = (avg - 128) * 1.1 + 128;
-      avg = Math.min(255, Math.max(0, avg));
-      data[i] = data[i + 1] = data[i + 2] = avg;
-    } else if (filterType === 'vintage') {
-      data[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-      data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-      data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-    } else if (filterType === 'vivid') {
-      data[i]     = Math.min(255, r * 1.25);
-      data[i + 1] = Math.min(255, g * 1.1);
-      data[i + 2] = Math.min(255, b * 0.95);
-    }
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-}
 
 // 4. 拍攝與動態相框側錄
 const canvases = [
@@ -207,7 +195,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 🎯 核心渲染：精確對齊成像並套用像素濾鏡
+// 🎯 核心渲染：精確對齊成像（無濾鏡原圖輸出）
 function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
   const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
   const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
@@ -235,12 +223,9 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
 
   ctx.drawImage(sourceVideoOrCanvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
   ctx.restore();
-
-  // 執行像素級濾鏡渲染
-  applyPixelFilter(ctx, targetWidth, targetHeight, currentFilter);
 }
 
-// 🎯 即時繪製「相框 + 像素濾鏡畫面」至錄影畫布
+// 🎯 即時繪製「相框 + 即時畫面」至錄影畫布
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -275,6 +260,7 @@ async function startPhotography() {
   downloadBtn.disabled = true;
   downloadVideoBtn.disabled = true;
   finalResultImg.style.display = 'none';
+  finalResultImg.classList.remove('printing-animation');
   hasShot = false;
   recordedChunks = [];
 
@@ -372,6 +358,7 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
+// 🎯 生成最終合成圖並觸發復古印相輸出動畫與機械音效
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
@@ -381,6 +368,12 @@ function generateFinalImage() {
     const dataUrl = canvas.toDataURL('image/png');
     finalResultImg.src = dataUrl;
     finalResultImg.style.display = 'block';
+    
+    // 播放印相機運作聲
+    playPrintingSound();
+
+    // 觸發由上而下滑出顯影的印相動畫
+    finalResultImg.classList.add('printing-animation');
   });
 }
 
@@ -390,6 +383,7 @@ retakeBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
   finalResultImg.style.display = 'none';
+  finalResultImg.classList.remove('printing-animation');
   hasShot = false;
   downloadBtn.disabled = true;
   downloadVideoBtn.disabled = true;
