@@ -64,7 +64,7 @@ let recordedVideoBlob = null;
 let audioCtx = null;
 let isRecordingActive = false;
 
-// 🎯 四格位置完全不動，並精準設定三格 PNG 相框的挖孔座標與大小
+// 🎯 原本四格位置完全不動，並精準設定三格 PNG 相框的挖孔座標與大小
 const FRAME_CONFIGS = {
   4: {
     positions: [
@@ -89,7 +89,7 @@ let canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
   document.getElementById('canvas3'),
-  document.getElementById('canvas4')
+  document.getElementById('canvas4']
 ];
 
 // 1. YouTube BGM
@@ -212,7 +212,7 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 🎯 相框點擊切換事件：自動正確切換 3 格或 4 格與對應畫布
+// 🎯 相框點擊切換事件：自動偵測並切換 3 格或 4 格
 let hasShot = false;
 
 frameOptions.forEach(option => {
@@ -220,8 +220,8 @@ frameOptions.forEach(option => {
     if (hasShot) return;
     document.querySelector('.frame-option.active').classList.remove('active');
     
-    // 確保點擊到 img 內部也能正確抓取外層 div 的屬性
-    const targetOption = e.currentTarget;
+    // 尋找被點擊到的 .frame-option 容器
+    const targetOption = e.currentTarget.closest('.frame-option');
     targetOption.classList.add('active');
 
     const selectedFrame = targetOption.getAttribute('data-frame');

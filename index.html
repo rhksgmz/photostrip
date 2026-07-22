@@ -451,20 +451,21 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
+        <!-- 🖼️ 4個相框選項：warm/cool 為4格，pink/blue 為3格 -->
         <div class="picker-group">
           <label>🖼️ 1. 請選擇專屬相框：</label>
           <div class="options-row">
             <div class="frame-option active" data-frame="frame_warm" data-slots="4">
-              <img src="frame_warm.png" alt="暖色四格">
+              <img src="frame_warm.png" alt="warm">
             </div>
             <div class="frame-option" data-frame="frame_cool" data-slots="4">
-              <img src="frame_cool.png" alt="藍色四格">
+              <img src="frame_cool.png" alt="cool">
             </div>
             <div class="frame-option" data-frame="frame_pink_3" data-slots="3">
-              <img src="frame_pink_3.png" alt="粉色三格">
+              <img src="frame_pink_3.png" alt="pink">
             </div>
             <div class="frame-option" data-frame="frame_blue_3" data-slots="3">
-              <img src="frame_blue_3.png" alt="藍色三格">
+              <img src="frame_blue_3.png" alt="blue">
             </div>
           </div>
         </div>
@@ -481,10 +482,10 @@
       <div class="preview-panel">
         <div id="photo-strip">
           <div class="photo-layer">
-            <div class="photo-frame" style="top:32px; left:18px; width:204px; height:141px;"><canvas id="canvas1"></canvas></div>
-            <div class="photo-frame" style="top:178.8px; left:18px; width:204px; height:141px;"><canvas id="canvas2"></canvas></div>
-            <div class="photo-frame" style="top:325.6px; left:18px; width:204px; height:141px;"><canvas id="canvas3"></canvas></div>
-            <div class="photo-frame" style="top:472.4px; left:18px; width:204px; height:141px; display:flex;"><canvas id="canvas4"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas1"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas2"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas3"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas4"></canvas></div>
           </div>
 
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
