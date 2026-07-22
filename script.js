@@ -22,6 +22,68 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // 🎵 YouTube BGM 背景音樂設定
+  // ==========================================
+  const musicBtn = document.getElementById('music-btn');
+  const musicIcon = document.getElementById('music-icon');
+  const musicText = document.getElementById('music-text');
+
+  let player = null;
+  let isPlaying = false;
+
+  window.onYouTubeIframeAPIReady = function() {
+    try {
+      player = new YT.Player('yt-player', {
+        height: '1',
+        width: '1',
+        playerVars: {
+          'listType': 'playlist',
+          'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks',
+          'autoplay': 0,
+          'controls': 0,
+          'loop': 1
+        },
+        events: {
+          'onReady': (event) => {
+            event.target.setVolume(40);
+            if (typeof player.setShuffle === 'function') {
+              player.setShuffle(true);
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.log("YouTube Player 初始化失敗：", e);
+    }
+  };
+
+  function toggleMusic() {
+    if (!player || typeof player.playVideo !== 'function') {
+      alert("背景音樂載入中，請稍候再試一次！");
+      return;
+    }
+
+    if (isPlaying) {
+      player.pauseVideo();
+      musicBtn.classList.remove('playing');
+      musicIcon.innerText = '🔇';
+      musicText.innerText = 'PAUSED';
+      isPlaying = false;
+    } else {
+      if (typeof player.nextVideo === 'function') {
+        player.nextVideo();
+      }
+      player.playVideo();
+      musicBtn.classList.add('playing');
+      musicIcon.innerText = '🔊';
+      musicText.innerText = 'PLAYING';
+      isPlaying = true;
+    }
+  }
+
+  musicBtn.addEventListener('click', toggleMusic);
+
+  // ==========================================
   // 📸 拍貼機核心程式碼
   // ==========================================
   const webcam = document.getElementById('webcam');
@@ -42,12 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const videoRecordCanvas = document.getElementById('video-record-canvas');
   const recordCtx = videoRecordCanvas.getContext('2d');
 
-  const musicBtn = document.getElementById('music-btn');
-  const musicIcon = document.getElementById('music-icon');
-  const musicText = document.getElementById('music-text');
-
-  let player = null;
-  let isPlaying = false;
   let currentFacingMode = 'user'; 
   let mediaRecorder = null;
   let recordedChunks = [];
@@ -55,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已針對特殊造型挖孔完美適配）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已放大 1.015 倍並縮短間隔 0.5 公分）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -67,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 30, top: 35, width: 180, height: 165 },  // 頂部熊頭框
-        { left: 35, top: 225, width: 170, height: 150 }, // 中間圓形框
-        { left: 25, top: 415, width: 190, height: 170 }  // 底部造型框
+        { left: 28, top: 35, width: 183, height: 167 },  // 頂部熊頭框
+        { left: 34, top: 208, width: 173, height: 152 }, // 中間圓形框
+        { left: 24, top: 381, width: 193, height: 173 }  // 底部造型框
       ]
     }
   };
