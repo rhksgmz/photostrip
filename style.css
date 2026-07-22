@@ -1,5 +1,231 @@
 /* =========================================================
-   3. 拍貼框圖層 (原尺寸 83px 頂邊距精密換算)
+   1. 重置與星空背景
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #090a0f;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  background-repeat: repeat, repeat, repeat, repeat, no-repeat;
+  background-size: 300px 300px, 300px 300px, 300px 300px, 300px 300px, 100% 100%;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  position: relative;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  background: rgba(23, 25, 38, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  max-width: 720px;
+  width: 100%;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+h1.exo-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'Orbitron', Impact, sans-serif !important;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
+              0 0 20px rgba(99, 102, 241, 0.9),
+              0 0 30px rgba(56, 189, 248, 0.5);
+}
+
+.controls-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 50; /* 提升控制面板層級 */
+}
+
+.preview-panel {
+  width: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =========================================================
+   2. 相機與藍色按鈕 (最高優先層級，確保絕對不被圖檔遮擋)
+   ========================================================= */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+#countdown-overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 80px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  position: relative;
+  z-index: 100; /* 🎯 關鍵修復：下載與重拍按鈕永遠置頂 */
+  flex: 1;
+  padding: 12px 10px;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.btn.secondary {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #93c5fd;
+}
+
+.btn.success {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+}
+
+.picker-group {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.picker-group label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.options-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: #0f172a;
+  border: 1px solid #1e3a8a;
+  color: #93c5fd;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.filter-btn.active {
+  border-color: #38bdf8;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.frame-option {
+  flex: 1;
+  height: 50px;
+  background: #0f172a;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.frame-option.active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+}
+
+.frame-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================================
+   3. 拍貼框圖層 (頂距 83px 換算 + 照片 500*345 比例換算)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -18,12 +244,12 @@
   z-index: 1;
 }
 
-/* 照片寬度 200px / 高度 140px，搭配相框孔洞圓角 */
+/* 🎯 依據原圖 500 * 345 換算的精確孔洞尺寸 (寬 200px / 高 138px) */
 .photo-frame {
   position: absolute;
   left: 20px;
   width: 200px;
-  height: 140px;
+  height: 138px;
   background-color: #000;
   overflow: hidden;
   border-radius: 12px;
@@ -39,19 +265,12 @@
 }
 
 /* ---------------------------------------------------------
-   🎯 精密換算 Y 軸座標 (原圖 83px ➔ 預覽區 33px)
+   🎯 精密 Y 軸對位 (頂離 83px ➔ 33px，相鄰間距 14px ≒ 0.5cm)
    --------------------------------------------------------- */
-/* 第 1 張照片：原尺寸 83px 對應 33px */
 .photo-frame:nth-child(1) { top: 33px; }
-
-/* 第 2 張照片：33 + 140 + 4 = 177px */
-.photo-frame:nth-child(2) { top: 177px; }
-
-/* 第 3 張照片：177 + 140 + 4 = 321px */
-.photo-frame:nth-child(3) { top: 321px; }
-
-/* 第 4 張照片：321 + 140 + 4 = 465px */
-.photo-frame:nth-child(4) { top: 465px; }
+.photo-frame:nth-child(2) { top: 185px; } /* 33 + 138 + 14 */
+.photo-frame:nth-child(3) { top: 337px; } /* 185 + 138 + 14 */
+.photo-frame:nth-child(4) { top: 489px; } /* 337 + 138 + 14 */
 
 #frame-overlay {
   position: absolute;
@@ -62,6 +281,7 @@
   pointer-events: none;
 }
 
+/* 長按儲存層 (限於相框內部，絕不擋到按鈕) */
 #final-result-img {
   position: absolute;
   top: 0; left: 0;
@@ -69,4 +289,17 @@
   z-index: 10;
   object-fit: fill;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .container { padding: 12px; }
+  .controls-panel { max-width: 100%; }
+  #photo-strip {
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
 }

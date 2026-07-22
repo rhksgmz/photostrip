@@ -17,19 +17,18 @@ const canvases = [
   document.getElementById('canvas4')
 ];
 
-const rawPhotoData = [null, null, null, null];
-
 const frameSources = {
   warm: 'frame_warm.png',
   cool: 'frame_cool.png'
 };
 
+// 🎯 濾鏡暫時不調整（全部保持純原圖狀態）
 const filterCanvasMap = {
   'normal': 'none',
-  'beauty': 'brightness(1.1) contrast(0.95) saturate(1.1)',
-  'retro': 'sepia(0.35) contrast(1.1) brightness(0.95) saturate(1.2)',
-  'vintage': 'contrast(1.2) saturate(0.85) hue-rotate(-10deg)',
-  'bw': 'grayscale(1) contrast(1.2)'
+  'beauty': 'none',
+  'retro': 'none',
+  'vintage': 'none',
+  'bw': 'none'
 };
 
 let currentFilterKey = 'normal';
@@ -40,9 +39,9 @@ navigator.mediaDevices.getUserMedia({
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認允許授權！"); });
+.catch(err => { alert("無法開啟相機，請確認授權權限！"); });
 
-// 2. 切換濾鏡
+// 2. 切換濾鏡 (暫不附加色彩調色)
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -50,17 +49,6 @@ filterBtns.forEach(btn => {
     
     e.currentTarget.classList.add('active');
     currentFilterKey = e.currentTarget.getAttribute('data-filter');
-    
-    webcam.style.filter = filterCanvasMap[currentFilterKey];
-
-    if (hasShot) {
-      canvases.forEach((canvas, index) => {
-        if (rawPhotoData[index]) {
-          renderCanvasWithFilter(canvas, rawPhotoData[index], currentFilterKey);
-        }
-      });
-      generateFinalImage();
-    }
   });
 });
 
@@ -89,7 +77,7 @@ async function startPhotography() {
 
   for (let i = 0; i < 4; i++) {
     await countdown(3);
-    takePhoto(i);
+    takePhoto(canvases[i]);
   }
 
   hasShot = true;
@@ -118,18 +106,13 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 同步更新：拍攝 500 * 350 像素放大相片
-function takePhoto(index) {
-  const canvas = canvases[index];
+// 🎯 純淨渲染 500 * 345 解析度照片
+function takePhoto(canvas) {
+  const ctx = canvas.getContext('2d');
   const targetWidth = 500;
-  const targetHeight = 350;
+  const targetHeight = 345;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
-
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = targetWidth;
-  tempCanvas.height = targetHeight;
-  const tempCtx = tempCanvas.getContext('2d');
 
   const vWidth = webcam.videoWidth;
   const vHeight = webcam.videoHeight;
@@ -149,22 +132,12 @@ function takePhoto(index) {
     sy = (vHeight - sHeight) / 2;
   }
 
-  tempCtx.translate(targetWidth, 0);
-  tempCtx.scale(-1, 1);
-  tempCtx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-
-  rawPhotoData[index] = tempCanvas;
-  renderCanvasWithFilter(canvas, tempCanvas, currentFilterKey);
+  ctx.translate(targetWidth, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 }
 
-function renderCanvasWithFilter(targetCanvas, sourceCanvas, filterKey) {
-  const ctx = targetCanvas.getContext('2d');
-  ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
-  ctx.filter = filterCanvasMap[filterKey];
-  ctx.drawImage(sourceCanvas, 0, 0);
-  ctx.filter = 'none';
-}
-
+// 合成最終作品（純圖片層級限制在 photoStrip 容器內）
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
@@ -177,17 +150,18 @@ function generateFinalImage() {
   });
 }
 
+// 重拍
 retakeBtn.addEventListener('click', () => {
-  canvases.forEach((canvas, index) => {
+  canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    rawPhotoData[index] = null;
   });
   finalResultImg.style.display = 'none';
   hasShot = false;
   downloadBtn.disabled = true;
 });
 
+// 下載按鈕
 downloadBtn.addEventListener('click', () => {
   if (finalResultImg.src && hasShot) {
     const link = document.createElement('a');
