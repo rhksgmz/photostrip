@@ -64,7 +64,7 @@ let recordedVideoBlob = null;
 let audioCtx = null;
 let isRecordingActive = false;
 
-// 🎯 原本四格位置完全不動，並精準對應三格 PNG 相框的挖孔座標
+// 🎯 四格位置完全不動，並精準設定三格 PNG 相框的挖孔座標與大小
 const FRAME_CONFIGS = {
   4: {
     positions: [
@@ -76,9 +76,9 @@ const FRAME_CONFIGS = {
   },
   3: {
     positions: [
-      { left: 24, top: 38, width: 192, height: 155 },   // 對應圖 A & B 第一格
-      { left: 24, top: 228, width: 192, height: 165 },  // 對應圖 A & B 第二格
-      { left: 24, top: 432, width: 192, height: 185 }   // 對應圖 A & B 第三格
+      { left: 24, top: 38, width: 192, height: 155 },   // 第一格
+      { left: 24, top: 228, width: 192, height: 165 },  // 第二格
+      { left: 24, top: 432, width: 192, height: 185 }   // 第三格
     ]
   }
 };
@@ -212,17 +212,20 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 🎯 相框點擊切換事件：自動辨識並切換 3 格或 4 格
+// 🎯 相框點擊切換事件：自動正確切換 3 格或 4 格與對應畫布
 let hasShot = false;
 
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     if (hasShot) return;
     document.querySelector('.frame-option.active').classList.remove('active');
-    e.currentTarget.classList.add('active');
+    
+    // 確保點擊到 img 內部也能正確抓取外層 div 的屬性
+    const targetOption = e.currentTarget;
+    targetOption.classList.add('active');
 
-    const selectedFrame = e.currentTarget.getAttribute('data-frame');
-    const slots = parseInt(e.currentTarget.getAttribute('data-slots')) || 4;
+    const selectedFrame = targetOption.getAttribute('data-frame');
+    const slots = parseInt(targetOption.getAttribute('data-slots')) || 4;
 
     currentSlots = slots;
     PHOTO_POSITIONS = FRAME_CONFIGS[slots].positions;
@@ -231,7 +234,7 @@ frameOptions.forEach(option => {
     photoLayer.innerHTML = '';
     for (let i = 0; i < slots; i++) {
       const pos = PHOTO_POSITIONS[i];
-      photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px;"><canvas id="canvas${i + 1}"></canvas></div>`;
+      photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px; display: flex;"><canvas id="canvas${i + 1}"></canvas></div>`;
     }
 
     canvases = [];
@@ -274,6 +277,7 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
 }
 
 function takePhoto(canvas) {
+  if (!canvas) return;
   const targetWidth = canvas.width || 510;
   const targetHeight = canvas.height || 352;
   const ctx = canvas.getContext('2d');
@@ -370,10 +374,12 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  canvases.forEach(c => {
-    c.width = PHOTO_POSITIONS[canvases.indexOf(c)].width * 2;
-    c.height = PHOTO_POSITIONS[canvases.indexOf(c)].height * 2;
-    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  canvases.forEach((c, idx) => {
+    if (c && PHOTO_POSITIONS[idx]) {
+      c.width = PHOTO_POSITIONS[idx].width * 2;
+      c.height = PHOTO_POSITIONS[idx].height * 2;
+      c.getContext('2d').clearRect(0, 0, c.width, c.height);
+    }
   });
 
   if (videoRecordCanvas.captureStream && window.MediaRecorder) {
@@ -397,6 +403,7 @@ async function startPhotography() {
     }
   }
 
+  // 🎯 依照目前選擇的格數（currentSlots 可能是 3 或 4）進行循環
   for (let i = 0; i < currentSlots; i++) {
     startRecordingLoop(i);
     await run5SecCountdown(5); // 每格 5 秒
@@ -458,8 +465,10 @@ function generateFinalImage() {
 
 retakeBtn.addEventListener('click', () => {
   canvases.forEach(canvas => {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   });
   finalResultImg.style.display = 'none';
   finalResultImg.classList.remove('printing-animation');

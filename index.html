@@ -353,12 +353,6 @@
       object-fit: cover !important;
     }
 
-    /* 原本四格預設位置 */
-    .photo-frame:nth-child(1) { top: 32px; }
-    .photo-frame:nth-child(2) { top: 178.8px; }
-    .photo-frame:nth-child(3) { top: 325.6px; }
-    .photo-frame:nth-child(4) { top: 472.4px; }
-
     #frame-overlay {
       position: absolute;
       top: 0; left: 0;
@@ -457,7 +451,6 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
-        <!-- 🖼️ 4個相框選項：2個四格、2個三格 (.png 檔) -->
         <div class="picker-group">
           <label>🖼️ 1. 請選擇專屬相框：</label>
           <div class="options-row">
@@ -488,10 +481,10 @@
       <div class="preview-panel">
         <div id="photo-strip">
           <div class="photo-layer">
-            <div class="photo-frame"><canvas id="canvas1"></canvas></div>
-            <div class="photo-frame"><canvas id="canvas2"></canvas></div>
-            <div class="photo-frame"><canvas id="canvas3"></canvas></div>
-            <div class="photo-frame"><canvas id="canvas4"></canvas></div>
+            <div class="photo-frame" style="top:32px; left:18px; width:204px; height:141px;"><canvas id="canvas1"></canvas></div>
+            <div class="photo-frame" style="top:178.8px; left:18px; width:204px; height:141px;"><canvas id="canvas2"></canvas></div>
+            <div class="photo-frame" style="top:325.6px; left:18px; width:204px; height:141px;"><canvas id="canvas3"></canvas></div>
+            <div class="photo-frame" style="top:472.4px; left:18px; width:204px; height:141px; display:flex;"><canvas id="canvas4"></canvas></div>
           </div>
 
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
