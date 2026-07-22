@@ -22,6 +22,7 @@ const frameSources = {
   cool: 'frame_cool.png'
 };
 
+// Canvas 2D 專用直接渲染濾鏡字串
 const filterCanvasMap = {
   'normal': 'none',
   'beauty': 'brightness(1.1) contrast(0.95) saturate(1.1)',
@@ -33,12 +34,12 @@ const filterCanvasMap = {
 let currentFilterKey = 'normal';
 let hasShot = false;
 
-// 1. 開啟鏡頭
+// 1. 開啟相機
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認允許權限！"); });
+.catch(err => { alert("無法開啟相機，請確認授權權限！"); });
 
 // 2. 切換濾鏡
 filterBtns.forEach(btn => {
@@ -49,12 +50,20 @@ filterBtns.forEach(btn => {
     e.currentTarget.classList.add('active');
     currentFilterKey = e.currentTarget.getAttribute('data-filter');
     
+    // 即時預覽畫面
     webcam.style.filter = filterCanvasMap[currentFilterKey];
-    canvases.forEach(canvas => {
-      canvas.style.filter = filterCanvasMap[currentFilterKey];
-    });
 
+    // 如果已經拍完照，重新重繪濾鏡到 Canvas 像素上
     if (hasShot) {
+      canvases.forEach(canvas => {
+        // 重新繪製濾鏡
+        const ctx = canvas.getContext('2d');
+        const imgData = canvas._originalImageData;
+        if (imgData) {
+          ctx.filter = filterCanvasMap[currentFilterKey];
+          ctx.putImageData(imgData, 0, 0);
+        }
+      });
       generateFinalImage();
     }
   });
@@ -75,7 +84,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍倒數
+// 4. 連拍流程
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -114,12 +123,12 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 核心修復：精確以 500 * 345 像素繪製相片
+// 🎯 核心重點：把濾鏡真實刻進 Canvas 像素中 (解開 html2canvas 跑掉的 Bug)
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   
   const targetWidth = 500;
-  const targetHeight = 345;
+  const targetHeight = 332;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
@@ -143,18 +152,19 @@ function takePhoto(canvas) {
     sy = (vHeight - sHeight) / 2;
   }
 
+  // 🎯 關鍵修復：直接將 ctx.filter 作用在 drawImage 渲染階段！
   ctx.filter = filterCanvasMap[currentFilterKey];
+  ctx.save();
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-
-  canvas.style.filter = filterCanvasMap[currentFilterKey];
+  ctx.restore();
 }
 
-// 產生供長按下載的高清圖片
+// 合成最終作品
 function generateFinalImage() {
   html2canvas(photoStrip, { 
-    scale: 2.5,  /* 輸出 600 * 1800 高清解析度 */
+    scale: 3, 
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
