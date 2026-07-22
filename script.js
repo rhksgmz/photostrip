@@ -25,9 +25,9 @@ let currentFacingMode = 'user';
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
-let audioCtx = null;
 let recordAnimationId = null;
 
+// 精確的相框內 4 張照片成像位置
 const PHOTO_POSITIONS = [
   { left: 18, top: 32, width: 204, height: 141 },
   { left: 18, top: 178.8, width: 204, height: 141 },
@@ -84,7 +84,7 @@ function toggleMusic() {
 musicBtn.addEventListener('click', toggleMusic);
 
 document.body.addEventListener('click', () => {
-  if (!isPlaying && player && typeof player.playVideo !== 'function') {
+  if (!isPlaying && player && typeof player.playVideo === 'function') {
     if (typeof player.nextVideo === 'function') {
       player.nextVideo();
     }
@@ -96,17 +96,13 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 2. 音效解鎖
+// 2. 模擬拍貼機印相運作機械聲音 (使用 Web Audio API 即時合成逼真滾軸運作聲)
 function playPrintingSound() {
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
-    const bufferSize = audioCtx.sampleRate * 1.6;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // 建立機械滾軸雜訊 (White Noise)
+    const bufferSize = audioCtx.sampleRate * 1.6; // 1.6 秒的列印聲
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -116,11 +112,13 @@ function playPrintingSound() {
     const noise = audioCtx.createBufferSource();
     noise.buffer = buffer;
 
+    // 低通濾調器 (模擬馬達低沉運轉聲)
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'bandpass';
     filter.frequency.value = 400;
     filter.Q.value = 3;
 
+    // 音量包絡線 (逐漸加速又停止)
     const gainNode = audioCtx.createGain();
     gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.2);
@@ -168,7 +166,7 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 4. 拍攝與錄影設定
+// 4. 拍攝與動態相框側錄
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -185,15 +183,19 @@ let hasShot = false;
 
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
-    if (hasShot) return;
     document.querySelector('.frame-option.active').classList.remove('active');
     e.currentTarget.classList.add('active');
 
     const selectedFrame = e.currentTarget.getAttribute('data-frame');
     frameOverlay.src = frameSources[selectedFrame];
+
+    if (hasShot) {
+      setTimeout(generateFinalImage, 100);
+    }
   });
 });
 
+// 🎯 核心渲染：精確對齊成像（無濾鏡原圖輸出）
 function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
   const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
   const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
@@ -223,16 +225,7 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
   ctx.restore();
 }
 
-function takePhoto(canvas) {
-  const targetWidth = 510;
-  const targetHeight = 352;
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-  const ctx = canvas.getContext('2d');
-  renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
-}
-
-// 🎯 恢復動態影片側錄：即時渲染每一格畫面到側錄畫布
+// 🎯 即時繪製「相框 + 即時畫面」至錄影畫布
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -240,11 +233,7 @@ function renderFullStripToCanvas(currentActiveIndex) {
     if (idx === currentActiveIndex) {
       recordCtx.save();
       recordCtx.beginPath();
-      if (typeof recordCtx.roundRect === 'function') {
-        recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
-      } else {
-        recordCtx.rect(pos.left, pos.top, pos.width, pos.height);
-      }
+      recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
       recordCtx.clip();
       
       const tempCanvas = document.createElement('canvas');
@@ -265,37 +254,7 @@ function renderFullStripToCanvas(currentActiveIndex) {
   }
 }
 
-// 🎯 強制手機顯示 321 倒數的計時器
-function runMobileCountdown(seconds) {
-  return new Promise(resolve => {
-    let count = seconds;
-    countdownOverlay.innerText = count;
-    void countdownOverlay.offsetHeight; // 強制 DOM 重繪
-
-    const timer = setInterval(() => {
-      count--;
-      if (count > 0) {
-        countdownOverlay.innerText = count;
-        void countdownOverlay.offsetHeight;
-      } else {
-        clearInterval(timer);
-        countdownOverlay.innerText = '';
-        resolve();
-      }
-    }, 1000);
-  });
-}
-
 async function startPhotography() {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  } catch (e) {}
-
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
@@ -307,13 +266,14 @@ async function startPhotography() {
 
   canvases.forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
 
-  // 啟動影片錄製
   if (videoRecordCanvas.captureStream && window.MediaRecorder) {
     try {
       const recordStream = videoRecordCanvas.captureStream(30);
       let options = {};
       if (MediaRecorder.isTypeSupported('video/mp4')) {
         options = { mimeType: 'video/mp4' };
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+        options = { mimeType: 'video/webm;codecs=vp8' };
       } else if (MediaRecorder.isTypeSupported('video/webm')) {
         options = { mimeType: 'video/webm' };
       }
@@ -324,11 +284,10 @@ async function startPhotography() {
       };
       mediaRecorder.start(100);
     } catch (e) {
-      console.log("錄影不支援：", e);
+      console.log("影音錄影初始化失敗：", e);
     }
   }
 
-  // 4張連拍循環（拍的同時讓側錄畫布動態更新）
   for (let i = 0; i < 4; i++) {
     const updateFrameLoop = () => {
       renderFullStripToCanvas(i);
@@ -336,7 +295,7 @@ async function startPhotography() {
     };
     updateFrameLoop();
 
-    await runMobileCountdown(3);
+    await countdown(3);
     cancelAnimationFrame(recordAnimationId);
     
     triggerFlash();
@@ -345,7 +304,7 @@ async function startPhotography() {
     renderFullStripToCanvas(i + 1);
   }
 
-  await new Promise(r => setTimeout(r, 1500));
+  await new Promise(r => setTimeout(r, 2000));
 
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
@@ -371,9 +330,38 @@ function triggerFlash() {
   }, 120);
 }
 
+function countdown(seconds) {
+  return new Promise(resolve => {
+    let count = seconds;
+    countdownOverlay.innerText = count;
+    
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdownOverlay.innerText = count;
+      } else {
+        clearInterval(interval);
+        countdownOverlay.innerText = '';
+        resolve();
+      }
+    }, 1000);
+  });
+}
+
+function takePhoto(canvas) {
+  const targetWidth = 510;
+  const targetHeight = 352;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext('2d');
+
+  renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
+}
+
+// 🎯 生成最終合成圖並觸發復古印相輸出動畫與機械音效
 function generateFinalImage() {
   html2canvas(photoStrip, { 
-    scale: 2, 
+    scale: 3, 
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
@@ -381,11 +369,11 @@ function generateFinalImage() {
     finalResultImg.src = dataUrl;
     finalResultImg.style.display = 'block';
     
+    // 播放印相機運作聲
     playPrintingSound();
+
+    // 觸發由上而下滑出顯影的印相動畫
     finalResultImg.classList.add('printing-animation');
-  }).catch(err => {
-    console.log("截圖失敗：", err);
-    alert("手機生成圖片時發生錯誤，請重新整理後再試一次！");
   });
 }
 
