@@ -14,7 +14,7 @@
 
   <style>
     /* =========================================================
-       1. 絕對防跑版重置 (全域鎖死)
+       1. 絕對防跑版重置
        ========================================================= */
     html, body, div, h1, p, video, canvas, img, button, label {
       box-sizing: border-box !important;
@@ -220,7 +220,7 @@
       object-fit: cover;
     }
 
-    /* 拍貼框座標微調 (top: 29px, left: 18.5px) */
+    /* 🎯 拍貼框座標微調 (放大 1.1 倍：寬 220px / 高 152px) */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -240,9 +240,9 @@
 
     .photo-frame {
       position: absolute;
-      left: 18.5px;
-      width: 200px;
-      height: 138px;
+      left: 10px;
+      width: 220px;
+      height: 152px;
       background-color: #000;
       overflow: hidden;
       border-radius: 12px;
@@ -257,10 +257,10 @@
       object-fit: cover !important;
     }
 
-    .photo-frame:nth-child(1) { top: 29px; }
-    .photo-frame:nth-child(2) { top: 174px; }
-    .photo-frame:nth-child(3) { top: 319px; }
-    .photo-frame:nth-child(4) { top: 464px; }
+    .photo-frame:nth-child(1) { top: 26px; }
+    .photo-frame:nth-child(2) { top: 185px; }
+    .photo-frame:nth-child(3) { top: 344px; }
+    .photo-frame:nth-child(4) { top: 503px; }
 
     #frame-overlay {
       position: absolute;
