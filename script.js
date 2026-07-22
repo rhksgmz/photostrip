@@ -84,11 +84,11 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 純淨渲染照片 (高解析度 500 * 312 像素)
+// 拍攝 500 * 345 像素照片
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   const targetWidth = 500;
-  const targetHeight = 312;
+  const targetHeight = 345;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
@@ -115,7 +115,7 @@ function takePhoto(canvas) {
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 }
 
-// 合成最終作品
+// 合成作品
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 

@@ -1,5 +1,5 @@
 /* =========================================================
-   1. 全局重置與防跑版星空背景
+   1. 完整重置與防跑版星空背景
    ========================================================= */
 *, *::before, *::after {
   box-sizing: border-box !important;
@@ -43,10 +43,10 @@ html, body {
   width: 100%;
 }
 
-/* 🎯 防跑版 Grid 網格 */
+/* 🎯 防跑版剛性 Grid 佈局 */
 .main-layout {
   display: grid;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: minmax(280px, 1fr) 240px;
   gap: 20px;
   align-items: start;
   width: 100%;
@@ -206,7 +206,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   3. 🎯 拍貼框圖層 (照片再往上 0.25cm ➔ 第一張 top: 26px)
+   3. 🎯 拍貼框圖層 (往下 0.1cm: +3px, 往左 0.05cm: left 18.5px)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -225,9 +225,10 @@ h1.exo-title {
   z-index: 1;
 }
 
+/* 🎯 往左移動 0.05cm：left 從 20px 調整為 18.5px */
 .photo-frame {
   position: absolute;
-  left: 20px;
+  left: 18.5px;
   width: 200px;
   height: 138px;
   background-color: #000;
@@ -245,12 +246,12 @@ h1.exo-title {
 }
 
 /* ---------------------------------------------------------
-   🎯 精密 Y 軸座標 (整體再往上移 7px，第一張 top: 26px，間距 7px)
+   🎯 精密 Y 軸座標 (整體往下移 3px ➔ 第一張 top: 29px，間距 7px)
    --------------------------------------------------------- */
-.photo-frame:nth-child(1) { top: 26px; }
-.photo-frame:nth-child(2) { top: 171px; } /* 26 + 138 + 7 */
-.photo-frame:nth-child(3) { top: 316px; } /* 171 + 138 + 7 */
-.photo-frame:nth-child(4) { top: 461px; } /* 316 + 138 + 7 */
+.photo-frame:nth-child(1) { top: 29px; }
+.photo-frame:nth-child(2) { top: 174px; } /* 29 + 138 + 7 */
+.photo-frame:nth-child(3) { top: 319px; } /* 174 + 138 + 7 */
+.photo-frame:nth-child(4) { top: 464px; } /* 319 + 138 + 7 */
 
 #frame-overlay {
   position: absolute;
