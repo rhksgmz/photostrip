@@ -369,7 +369,7 @@
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 (Slide down & Fade in) */
+    /* 🎞️ 復古印相輸出浮現特效 */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
@@ -459,14 +459,9 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
-        <div class="buttons">
-          <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
-          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
-        </div>
-
-        <!-- 相框選擇區 -->
-        <div class="picker-group">
-          <label>🖼️ 選擇專屬相框：</label>
+        <!-- 相框選擇區 (移至最前方) -->
+        <div class="picker-group" style="margin-top: 5px;">
+          <label>🖼️ 1. 請先選擇專屬相框：</label>
           <div class="options-row">
             <div class="frame-option active" data-frame="warm">
               <img src="frame_warm.png" alt="暖色手繪框">
@@ -477,11 +472,16 @@
           </div>
         </div>
 
+        <div class="buttons">
+          <button id="start-btn" class="btn primary">2. 開始連拍 (4張)</button>
+          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+        </div>
+
         <button id="download-btn" class="btn success" disabled>下載照片作品 💾</button>
         <button id="download-video-btn" class="btn video-btn" disabled>下載動態相框影片 🎥</button>
       </div>
 
-      <!-- 右側：拍貼預覽區 -->
+      <!-- 右側：拍貼預覽區 (拍照過程中就能看見相框與每格圖案) -->
       <div class="preview-panel">
         <div id="photo-strip">
           <div class="photo-layer">
@@ -491,8 +491,10 @@
             <div class="photo-frame"><canvas id="canvas4"></canvas></div>
           </div>
 
+          <!-- 拍照時即時看見相框裝飾 -->
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
-          <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
+          <!-- 拍完後印相輸出的總成象 -->
+          <img id="final-result-img" alt="長按儲存拍貼">
         </div>
       </div>
     </div>
