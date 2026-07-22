@@ -177,10 +177,9 @@ const frameSources = {
 
 let hasShot = false;
 
-// 一開始先選擇相框
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
-    if (hasShot) return; // 拍照完成後鎖定相框切換
+    if (hasShot) return;
     document.querySelector('.frame-option.active').classList.remove('active');
     e.currentTarget.classList.add('active');
 
@@ -189,7 +188,6 @@ frameOptions.forEach(option => {
   });
 });
 
-// 🎯 核心渲染：精確對齊成像
 function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
   const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
   const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
@@ -219,7 +217,6 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
   ctx.restore();
 }
 
-// 🎯 即時繪製「相框 + 拍照格」至錄影畫布
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -258,8 +255,6 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  // 拍照開始前隱藏底層個別的小 Canvas 格子，改由右側整張印相動畫呈現
-  document.querySelector('.photo-layer').style.display = 'block';
   canvases.forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
 
   if (videoRecordCanvas.captureStream && window.MediaRecorder) {
@@ -354,7 +349,6 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 生成最終合成圖並隱藏背景格、觸發印相滑出特效
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
@@ -364,14 +358,10 @@ function generateFinalImage() {
     const dataUrl = canvas.toDataURL('image/png');
     finalResultImg.src = dataUrl;
     
-    // 拍照完成後隱藏底層格子，讓滑出顯影動畫獨佔畫面
-    document.querySelector('.photo-layer').style.display = 'none';
+    // 顯示滑出顯影特效圖層
     finalResultImg.style.display = 'block';
     
-    // 播放印相機運作聲
     playPrintingSound();
-
-    // 觸發由上而下滑出顯影的印相動畫
     finalResultImg.classList.add('printing-animation');
   });
 }
@@ -381,7 +371,6 @@ retakeBtn.addEventListener('click', () => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
-  document.querySelector('.photo-layer').style.display = 'block';
   finalResultImg.style.display = 'none';
   finalResultImg.classList.remove('printing-animation');
   hasShot = false;

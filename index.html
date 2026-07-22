@@ -180,15 +180,16 @@
       opacity: 0.95;
     }
 
+    /* 🎯 確保倒數數字層級最高，絕對不被遮擋 */
     #countdown-overlay {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 70px;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 0 0 20px rgba(0,0,0,0.8);
-      z-index: 70;
+      font-size: 80px;
+      font-weight: 900;
+      color: #38bdf8;
+      text-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 10px rgba(56, 189, 248, 0.8);
+      z-index: 999;
     }
 
     /* 🔄 鏡頭翻轉小按鈕 */
@@ -317,7 +318,7 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框精確尺寸與 Y 軸座標 (1.02 倍照片 + 間距 5.8px) */
+    /* 🎯 拍貼框精確尺寸與 Y 軸座標 */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -354,7 +355,6 @@
       object-fit: cover !important;
     }
 
-    /* 🎯 4 張照片頂距精密定位 */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -365,16 +365,16 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: fill;
-      z-index: 2;
+      z-index: 5;
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 */
+    /* 🎞️ 復古印相輸出浮現特效 (圖層設在最上層 z-index: 20) */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      z-index: 10;
+      z-index: 20;
       object-fit: fill;
       cursor: pointer;
       display: none;
@@ -401,7 +401,6 @@
       }
     }
 
-    /* 隱藏的音訊與後台錄影 Canvas */
     #youtube-player-container, #hidden-recorder-container {
       position: absolute;
       width: 1px;
@@ -442,7 +441,7 @@
       <div id="yt-player"></div>
     </div>
 
-    <!-- 🎥 錄影合成畫布 (高清無失真比例) -->
+    <!-- 🎥 錄影合成畫布 -->
     <div id="hidden-recorder-container">
       <canvas id="video-record-canvas" width="240" height="720"></canvas>
     </div>
@@ -455,11 +454,12 @@
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
           <div id="flash-effect"></div>
+          <!-- 🎯 倒數數字放置於相機畫面內最上層 -->
           <div id="countdown-overlay"></div>
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
-        <!-- 相框選擇區 (移至最前方) -->
+        <!-- 相框選擇區 -->
         <div class="picker-group" style="margin-top: 5px;">
           <label>🖼️ 1. 請先選擇專屬相框：</label>
           <div class="options-row">
@@ -481,7 +481,7 @@
         <button id="download-video-btn" class="btn video-btn" disabled>下載動態相框影片 🎥</button>
       </div>
 
-      <!-- 右側：拍貼預覽區 (拍照過程中就能看見相框與每格圖案) -->
+      <!-- 右側：拍貼預覽區 -->
       <div class="preview-panel">
         <div id="photo-strip">
           <div class="photo-layer">
@@ -491,9 +491,7 @@
             <div class="photo-frame"><canvas id="canvas4"></canvas></div>
           </div>
 
-          <!-- 拍照時即時看見相框裝飾 -->
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
-          <!-- 拍完後印相輸出的總成象 -->
           <img id="final-result-img" alt="長按儲存拍貼">
         </div>
       </div>
