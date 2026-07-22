@@ -232,32 +232,32 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 持續穩定渲染側錄畫面，確保影片絕對會動
-function renderFullStripToCanvas(currentActiveIndex) {
+// 🎯 讓四個格子在錄影過程中「同時都能動」的即時渲染核心
+function renderAllActiveFrames(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
   PHOTO_POSITIONS.forEach((pos, idx) => {
-    if (idx === currentActiveIndex) {
-      recordCtx.save();
-      recordCtx.beginPath();
-      if (typeof recordCtx.roundRect === 'function') {
-        recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
-      } else {
-        recordCtx.rect(pos.left, pos.top, pos.width, pos.height);
-      }
-      recordCtx.clip();
-      
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = pos.width;
-      tempCanvas.height = pos.height;
-      const tempCtx = tempCanvas.getContext('2d');
-      renderFrameToContext(tempCtx, pos.width, pos.height, webcam, true, currentFacingMode);
-      
-      recordCtx.drawImage(tempCanvas, pos.left, pos.top);
-      recordCtx.restore();
-    } else if (idx < currentActiveIndex) {
-      recordCtx.drawImage(canvases[idx], pos.left, pos.top, pos.width, pos.height);
+    recordCtx.save();
+    recordCtx.beginPath();
+    if (typeof recordCtx.roundRect === 'function') {
+      recordCtx.roundRect(pos.left, pos.top, pos.width, pos.height, 12);
+    } else {
+      recordCtx.rect(pos.left, pos.top, pos.width, pos.height);
     }
+    recordCtx.clip();
+
+    // 如果這一格已經拍完了，就固定顯示該格拍好的畫面；如果還在拍或輪到這一格，就讓它持續顯示即時相機畫面（會跟著動）
+    const sourceToDraw = (idx < currentActiveIndex && canvases[idx].width > 0) ? canvases[idx] : webcam;
+    const isLive = !(idx < currentActiveIndex && canvases[idx].width > 0);
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = pos.width;
+    tempCanvas.height = pos.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    renderFrameToContext(tempCtx, pos.width, pos.height, sourceToDraw, isLive, currentFacingMode);
+    recordCtx.drawImage(tempCanvas, pos.left, pos.top);
+    recordCtx.restore();
   });
 
   if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
@@ -265,10 +265,9 @@ function renderFullStripToCanvas(currentActiveIndex) {
   }
 }
 
-// 持續迴圈推動錄影影格更新
 function startRecordingLoop(currentActiveIndex) {
   if (!isRecordingActive) return;
-  renderFullStripToCanvas(currentActiveIndex);
+  renderAllActiveFrames(currentActiveIndex);
   requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
 }
 
@@ -335,18 +334,16 @@ async function startPhotography() {
     }
   }
 
+  // 4張連拍循環，每一張倒數時所有格子都會跟著鏡頭即時變動
   for (let i = 0; i < 4; i++) {
-    // 啟動該格的動態畫面更新迴圈
     startRecordingLoop(i);
 
     await runMobileCountdown(3);
     
-    // 暫停迴圈寫入當下快照
     isRecordingActive = false;
     triggerFlash();
-    takePhoto(canvases[i]);
+    takePhoto(canvases[i]); // 拍完後將該格定格存入 canvases[i]
     
-    renderFullStripToCanvas(i + 1);
     isRecordingActive = true;
   }
 
