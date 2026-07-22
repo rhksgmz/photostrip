@@ -1,23 +1,11 @@
 // ==========================================
-// 🔴 Firebase 即時數據同步設定
+// 🔴 Firebase 累積拍攝次數即時同步設定
 // ==========================================
 const firebaseConfig = {
   databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-const onlineCountEl = document.getElementById('online-count');
-const myConnectionRef = db.ref('presence').push();
-myConnectionRef.onDisconnect().remove();
-myConnectionRef.set(true);
-
-db.ref('presence').on('value', (snapshot) => {
-  const count = snapshot.numChildren();
-  if (onlineCountEl) {
-    onlineCountEl.innerText = count > 0 ? count : 1;
-  }
-});
 
 const totalShotsEl = document.getElementById('total-shots');
 db.ref('stats/totalShots').on('value', (snapshot) => {
@@ -64,7 +52,7 @@ let recordedVideoBlob = null;
 let audioCtx = null;
 let isRecordingActive = false;
 
-// 🎯 原本四格位置完全不動，並精準設定三格 PNG 相框的挖孔座標與大小
+// 🎯 四格與三格 PNG 相框的挖孔座標與大小
 const FRAME_CONFIGS = {
   4: {
     positions: [
@@ -89,7 +77,7 @@ let canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
   document.getElementById('canvas3'),
-  document.getElementById('canvas4']
+  document.getElementById('canvas4')
 ];
 
 // 1. YouTube BGM
@@ -212,16 +200,17 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 🎯 相框點擊切換事件：自動偵測並切換 3 格或 4 格
+// 🎯 相框切換事件
 let hasShot = false;
 
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     if (hasShot) return;
-    document.querySelector('.frame-option.active').classList.remove('active');
     
-    // 尋找被點擊到的 .frame-option 容器
-    const targetOption = e.currentTarget.closest('.frame-option');
+    const activeOld = document.querySelector('.frame-option.active');
+    if (activeOld) activeOld.classList.remove('active');
+    
+    const targetOption = e.currentTarget;
     targetOption.classList.add('active');
 
     const selectedFrame = targetOption.getAttribute('data-frame');
@@ -403,7 +392,6 @@ async function startPhotography() {
     }
   }
 
-  // 🎯 依照目前選擇的格數（currentSlots 可能是 3 或 4）進行循環
   for (let i = 0; i < currentSlots; i++) {
     startRecordingLoop(i);
     await run5SecCountdown(5); // 每格 5 秒
