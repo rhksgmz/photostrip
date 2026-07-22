@@ -17,12 +17,14 @@ const canvases = [
   document.getElementById('canvas4')
 ];
 
+// 保存未加濾鏡原始影像（供即時切換濾鏡使用）
+const rawPhotoData = [null, null, null, null];
+
 const frameSources = {
   warm: 'frame_warm.png',
   cool: 'frame_cool.png'
 };
 
-// Canvas 2D 專用直接渲染濾鏡字串
 const filterCanvasMap = {
   'normal': 'none',
   'beauty': 'brightness(1.1) contrast(0.95) saturate(1.1)',
@@ -39,9 +41,9 @@ navigator.mediaDevices.getUserMedia({
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
-.catch(err => { alert("無法開啟相機，請確認授權權限！"); });
+.catch(err => { alert("無法開啟相機，請確認允許授權！"); });
 
-// 2. 切換濾鏡
+// 2. 切換濾鏡 (直接重繪 Canvas 像素，徹底根治 html2canvas 跑圖問題)
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -50,18 +52,13 @@ filterBtns.forEach(btn => {
     e.currentTarget.classList.add('active');
     currentFilterKey = e.currentTarget.getAttribute('data-filter');
     
-    // 即時預覽畫面
     webcam.style.filter = filterCanvasMap[currentFilterKey];
 
-    // 如果已經拍完照，重新重繪濾鏡到 Canvas 像素上
+    // 如果已經拍照，將原始相片重新以新濾鏡繪製至 Canvas 像素
     if (hasShot) {
-      canvases.forEach(canvas => {
-        // 重新繪製濾鏡
-        const ctx = canvas.getContext('2d');
-        const imgData = canvas._originalImageData;
-        if (imgData) {
-          ctx.filter = filterCanvasMap[currentFilterKey];
-          ctx.putImageData(imgData, 0, 0);
+      canvases.forEach((canvas, index) => {
+        if (rawPhotoData[index]) {
+          renderCanvasWithFilter(canvas, rawPhotoData[index], currentFilterKey);
         }
       });
       generateFinalImage();
@@ -84,7 +81,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍流程
+// 4. 開始拍攝流程
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -94,7 +91,7 @@ async function startPhotography() {
 
   for (let i = 0; i < 4; i++) {
     await countdown(3);
-    takePhoto(canvases[i]);
+    takePhoto(i);
   }
 
   hasShot = true;
@@ -123,23 +120,26 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 核心重點：把濾鏡真實刻進 Canvas 像素中 (解開 html2canvas 跑掉的 Bug)
-function takePhoto(canvas) {
-  const ctx = canvas.getContext('2d');
-  
+// 拍攝照片並儲存 Raw Data
+function takePhoto(index) {
+  const canvas = canvases[index];
   const targetWidth = 500;
   const targetHeight = 332;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
+  // 1. 建立離屏 Canvas 擷取視訊原始圖像
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = targetWidth;
+  tempCanvas.height = targetHeight;
+  const tempCtx = tempCanvas.getContext('2d');
+
   const vWidth = webcam.videoWidth;
   const vHeight = webcam.videoHeight;
-
   const videoAspect = vWidth / vHeight;
   const targetAspect = targetWidth / targetHeight;
 
   let sWidth, sHeight, sx, sy;
-
   if (videoAspect > targetAspect) {
     sHeight = vHeight;
     sWidth = vHeight * targetAspect;
@@ -152,13 +152,26 @@ function takePhoto(canvas) {
     sy = (vHeight - sHeight) / 2;
   }
 
-  // 🎯 關鍵修復：直接將 ctx.filter 作用在 drawImage 渲染階段！
-  ctx.filter = filterCanvasMap[currentFilterKey];
-  ctx.save();
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-  ctx.restore();
+  tempCtx.translate(targetWidth, 0);
+  tempCtx.scale(-1, 1);
+  tempCtx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
+
+  // 2. 保存原始圖像
+  rawPhotoData[index] = tempCanvas;
+
+  // 3. 直接帶有濾鏡渲染至顯示用 Canvas 上
+  renderCanvasWithFilter(canvas, tempCanvas, currentFilterKey);
+}
+
+// 將圖像帶濾鏡繪製至目標 Canvas (像素級刻入)
+function renderCanvasWithFilter(targetCanvas, sourceCanvas, filterKey) {
+  const ctx = targetCanvas.getContext('2d');
+  ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+  
+  // 🎯 關鍵重點：直接將濾鏡寫入 Context，產生的圖像會自帶色彩濾鏡像素！
+  ctx.filter = filterCanvasMap[filterKey];
+  ctx.drawImage(sourceCanvas, 0, 0);
+  ctx.filter = 'none'; // 重置 filter 避免後續繪圖受影響
 }
 
 // 合成最終作品
@@ -176,9 +189,10 @@ function generateFinalImage() {
 
 // 重拍
 retakeBtn.addEventListener('click', () => {
-  canvases.forEach(canvas => {
+  canvases.forEach((canvas, index) => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    rawPhotoData[index] = null;
   });
   finalResultImg.style.display = 'none';
   hasShot = false;

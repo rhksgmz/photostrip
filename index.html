@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EXhOrizon in Kaohsiung</title>
   
-  <!-- 載入 EXO 金屬風格專屬字體 Orbitron -->
+  <!-- 載入 EXO 專屬科技金屬感字體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
@@ -14,10 +14,9 @@
 </head>
 <body>
   <div class="container">
-    <!-- EXO 金屬風格標題 -->
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
-    <!-- 左側：相機與控制區 -->
+    <!-- 控制面板區 -->
     <div class="controls-panel">
       <div class="camera-container">
         <video id="webcam" autoplay playsinline muted></video>
@@ -29,7 +28,6 @@
         <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
       </div>
 
-      <!-- 特效濾鏡選擇區 -->
       <div class="picker-group">
         <label>✨ 選擇特效濾鏡：</label>
         <div class="options-row">
@@ -41,7 +39,6 @@
         </div>
       </div>
 
-      <!-- 相框選擇區 -->
       <div class="picker-group">
         <label>🖼️ 選擇專屬相框：</label>
         <div class="options-row">
@@ -57,10 +54,9 @@
       <button id="download-btn" class="btn success" disabled>下載 / 長按儲存作品 💾</button>
     </div>
 
-    <!-- 右側：四格照片預覽區 -->
+    <!-- 拍貼預覽區 -->
     <div class="preview-panel">
       <div id="photo-strip">
-        <!-- 下層：4 張照片 -->
         <div class="photo-layer">
           <div class="photo-frame"><canvas id="canvas1"></canvas></div>
           <div class="photo-frame"><canvas id="canvas2"></canvas></div>
@@ -68,10 +64,7 @@
           <div class="photo-frame"><canvas id="canvas4"></canvas></div>
         </div>
 
-        <!-- 上層：PNG 相框遮罩 -->
         <img id="frame-overlay" src="frame_warm.png" alt="相框">
-
-        <!-- 長按儲存圖層 -->
         <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
       </div>
     </div>
