@@ -29,7 +29,7 @@
     /* =========================================================
        1. 絕對防跑版重置 (全域鎖死)
        ========================================================= */
-    html, body, div, h1, p, video, canvas, img, button, label {
+    html, body, div, h1, p, video, canvas, img, button, label, select {
       box-sizing: border-box !important;
       margin: 0;
       padding: 0;
@@ -261,7 +261,7 @@
     }
 
     .btn.success {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
       font-size: 14px;
       background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
@@ -279,7 +279,7 @@
     }
 
     .picker-group {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
     }
 
@@ -294,6 +294,19 @@
       display: flex;
       gap: 6px;
       width: 100%;
+    }
+
+    /* 🎨 濾鏡下拉選單 */
+    .filter-select {
+      width: 100%;
+      padding: 8px 10px;
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
     }
 
     .frame-option {
@@ -354,7 +367,7 @@
       object-fit: cover !important;
     }
 
-    /* 🎯 4 張照片頂距精密定位 */
+    /* 🎯 4 張照片頂距精密定位 (再往下 0.05cm + 縮間距) */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -369,7 +382,6 @@
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 (Slide down & Fade in) */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
@@ -377,28 +389,6 @@
       z-index: 10;
       object-fit: fill;
       cursor: pointer;
-      display: none;
-    }
-
-    #final-result-img.printing-animation {
-      animation: photoPrintSlide 1.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
-    }
-
-    @keyframes photoPrintSlide {
-      0% {
-        transform: translateY(-100%);
-        opacity: 0.1;
-        filter: brightness(2.5) contrast(0.5);
-      }
-      50% {
-        opacity: 0.7;
-        filter: brightness(1.3) contrast(0.9);
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-        filter: brightness(1) contrast(1);
-      }
     }
 
     /* 隱藏的音訊與後台錄影 Canvas */
@@ -462,6 +452,17 @@
         <div class="buttons">
           <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
           <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+        </div>
+
+        <!-- 🎨 濾鏡選擇區 -->
+        <div class="picker-group">
+          <label>✨ 選擇照片濾鏡風格：</label>
+          <select id="filter-select" class="filter-select">
+            <option value="none">原圖風格 (Original)</option>
+            <option value="vintage">韓系柔焦 (Soft Vintage)</option>
+            <option value="bw">黑白冷調 (Monochrome)</option>
+            <option value="vivid">鮮豔奶油 (Vivid Pop)</option>
+          </select>
         </div>
 
         <!-- 相框選擇區 -->
