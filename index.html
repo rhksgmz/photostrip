@@ -29,7 +29,7 @@
     /* =========================================================
        1. 絕對防跑版重置 (全域鎖死)
        ========================================================= */
-    html, body, div, h1, p, video, canvas, img, button, label {
+    html, body, div, h1, p, video, canvas, img, button, label, select {
       box-sizing: border-box !important;
       margin: 0;
       padding: 0;
@@ -180,16 +180,15 @@
       opacity: 0.95;
     }
 
-    /* 🎯 倒數數字層級設到最高 */
     #countdown-overlay {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 80px;
-      font-weight: 900;
-      color: #38bdf8;
-      text-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 10px rgba(56, 189, 248, 0.8);
-      z-index: 999;
+      font-size: 70px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(0,0,0,0.8);
+      z-index: 70;
     }
 
     /* 🔄 鏡頭翻轉小按鈕 */
@@ -262,7 +261,7 @@
     }
 
     .btn.success {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
       font-size: 14px;
       background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
@@ -280,7 +279,7 @@
     }
 
     .picker-group {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
     }
 
@@ -295,6 +294,19 @@
       display: flex;
       gap: 6px;
       width: 100%;
+    }
+
+    /* 🎨 濾鏡下拉選單 */
+    .filter-select {
+      width: 100%;
+      padding: 8px 10px;
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
     }
 
     .frame-option {
@@ -318,7 +330,7 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框精確尺寸與 Y 軸座標 */
+    /* 🎯 拍貼框精確尺寸與 Y 軸座標 (1.02 倍照片 + 間距 5.8px) */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -355,6 +367,7 @@
       object-fit: cover !important;
     }
 
+    /* 🎯 4 張照片頂距精密定位 (再往下 0.05cm + 縮間距) */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -365,42 +378,20 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: fill;
-      z-index: 5;
+      z-index: 2;
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      z-index: 20;
+      z-index: 10;
       object-fit: fill;
       cursor: pointer;
-      display: none;
     }
 
-    #final-result-img.printing-animation {
-      animation: photoPrintSlide 1.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
-    }
-
-    @keyframes photoPrintSlide {
-      0% {
-        transform: translateY(-100%);
-        opacity: 0.1;
-        filter: brightness(2.5) contrast(0.5);
-      }
-      50% {
-        opacity: 0.7;
-        filter: brightness(1.3) contrast(0.9);
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-        filter: brightness(1) contrast(1);
-      }
-    }
-
+    /* 隱藏的音訊與後台錄影 Canvas */
     #youtube-player-container, #hidden-recorder-container {
       position: absolute;
       width: 1px;
@@ -441,7 +432,7 @@
       <div id="yt-player"></div>
     </div>
 
-    <!-- 🎥 錄影合成畫布 -->
+    <!-- 🎥 錄影合成畫布 (高清無失真比例) -->
     <div id="hidden-recorder-container">
       <canvas id="video-record-canvas" width="240" height="720"></canvas>
     </div>
@@ -458,9 +449,25 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
+        <div class="buttons">
+          <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
+          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+        </div>
+
+        <!-- 🎨 濾鏡選擇區 -->
+        <div class="picker-group">
+          <label>✨ 選擇照片濾鏡風格：</label>
+          <select id="filter-select" class="filter-select">
+            <option value="none">原圖風格 (Original)</option>
+            <option value="vintage">韓系柔焦 (Soft Vintage)</option>
+            <option value="bw">黑白冷調 (Monochrome)</option>
+            <option value="vivid">鮮豔奶油 (Vivid Pop)</option>
+          </select>
+        </div>
+
         <!-- 相框選擇區 -->
-        <div class="picker-group" style="margin-top: 5px;">
-          <label>🖼️ 1. 請先選擇專屬相框：</label>
+        <div class="picker-group">
+          <label>🖼️ 選擇專屬相框：</label>
           <div class="options-row">
             <div class="frame-option active" data-frame="warm">
               <img src="frame_warm.png" alt="暖色手繪框">
@@ -469,11 +476,6 @@
               <img src="frame_cool.png" alt="銀河藍色框">
             </div>
           </div>
-        </div>
-
-        <div class="buttons">
-          <button id="start-btn" class="btn primary">2. 開始連拍 (4張)</button>
-          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
         </div>
 
         <button id="download-btn" class="btn success" disabled>下載照片作品 💾</button>
@@ -491,7 +493,7 @@
           </div>
 
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
-          <img id="final-result-img" alt="長按儲存拍貼">
+          <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
         </div>
       </div>
     </div>
