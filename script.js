@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已放大 1.05 倍並縮短間隔一半）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已再次放大 1.2 倍並將間隔縮短一半）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -67,9 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 19, top: 38, width: 202, height: 163 },
-        { left: 19, top: 219, width: 202, height: 173 },
-        { left: 19, top: 412, width: 202, height: 194 }
+        { left: 10, top: 38, width: 220, height: 196 },
+        { left: 10, top: 243, width: 220, height: 208 },
+        { left: 10, top: 461, width: 220, height: 233 }
       ]
     }
   };
@@ -263,6 +263,13 @@ document.addEventListener('DOMContentLoaded', () => {
     hasShot = false;
     recordedChunks = [];
 
+    // 🎯 點擊按鈕的瞬間立即計入總拍攝次數
+    try {
+      firebase.database().ref('stats/totalShots').transaction((current) => {
+        return (current || 128) + 1;
+      });
+    } catch (e) {}
+
     canvases.forEach((c, idx) => {
       if (c && PHOTO_POSITIONS[idx]) {
         c.width = PHOTO_POSITIONS[idx].width * 2;
@@ -316,12 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     hasShot = true;
     generateFinalImage();
-
-    try {
-      firebase.database().ref('stats/totalShots').transaction((current) => {
-        return (current || 128) + 1;
-      });
-    } catch (e) {}
 
     startBtn.disabled = false;
     retakeBtn.disabled = false;
