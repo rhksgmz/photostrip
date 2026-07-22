@@ -26,7 +26,7 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
 let audioCtx = null;
-let recordAnimationId = null;
+let isRecordingActive = false;
 
 const PHOTO_POSITIONS = [
   { left: 18, top: 32, width: 204, height: 141 },
@@ -232,7 +232,7 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 即時渲染每一格畫面到側錄畫布
+// 🎯 持續穩定渲染側錄畫面，確保影片絕對會動
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -265,12 +265,19 @@ function renderFullStripToCanvas(currentActiveIndex) {
   }
 }
 
+// 持續迴圈推動錄影影格更新
+function startRecordingLoop(currentActiveIndex) {
+  if (!isRecordingActive) return;
+  renderFullStripToCanvas(currentActiveIndex);
+  requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
+}
+
 // 🎯 強制手機顯示 321 倒數的計時器
 function runMobileCountdown(seconds) {
   return new Promise(resolve => {
     let count = seconds;
     countdownOverlay.innerText = count;
-    void countdownOverlay.offsetHeight; // 強制 DOM 重繪
+    void countdownOverlay.offsetHeight;
 
     const timer = setInterval(() => {
       count--;
@@ -322,28 +329,29 @@ async function startPhotography() {
         if (e.data && e.data.size > 0) recordedChunks.push(e.data);
       };
       mediaRecorder.start(100);
+      isRecordingActive = true;
     } catch (e) {
       console.log("錄影不支援：", e);
     }
   }
 
   for (let i = 0; i < 4; i++) {
-    const updateFrameLoop = () => {
-      renderFullStripToCanvas(i);
-      recordAnimationId = requestAnimationFrame(updateFrameLoop);
-    };
-    updateFrameLoop();
+    // 啟動該格的動態畫面更新迴圈
+    startRecordingLoop(i);
 
     await runMobileCountdown(3);
-    cancelAnimationFrame(recordAnimationId);
     
+    // 暫停迴圈寫入當下快照
+    isRecordingActive = false;
     triggerFlash();
     takePhoto(canvases[i]);
     
     renderFullStripToCanvas(i + 1);
+    isRecordingActive = true;
   }
 
-  await new Promise(r => setTimeout(r, 1500));
+  isRecordingActive = false;
+  await new Promise(r => setTimeout(r, 1000));
 
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
