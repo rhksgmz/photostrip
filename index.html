@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
-  <!-- 🎯 社群軟體（LINE / FB / Twitter）分享連結預覽縮圖與標題設定 -->
+  <!-- 🎯 社群分享縮圖與標題設定 -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="EXhOrizon in Kaohsiung 拍貼機">
   <meta property="og:description" content="來體驗專屬 EXhOrizon 拍貼機，留下你的韓系宇宙風拍貼吧！">
@@ -17,7 +17,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="EXhOrizon in Kaohsiung 拍貼機">
-  <meta name="twitter:description" content="來體驗專屬 EXhOrizon 拍貼機，留下你的韓系宇宙風拍貼吧！">
+  <meta name="twitter:description" content="來體驗專屬 EXhOrizon in Kaohsiung 拍貼機！">
   <meta name="twitter:image" content="favicon.png">
 
   <!-- 載入 EXO 專屬科技金屬感字體 -->
@@ -31,7 +31,7 @@
     /* =========================================================
        1. 絕對防跑版重置
        ========================================================= */
-    html, body, div, h1, p, video, canvas, img, button, label {
+    html, body, div, h1, p, video, canvas, img, button, label, select {
       box-sizing: border-box !important;
       margin: 0;
       padding: 0;
@@ -166,6 +166,27 @@
       transform: scaleX(-1);
     }
 
+    /* 翻轉後的相機（後置鏡頭不鏡像） */
+    #webcam.unmirrored {
+      transform: scaleX(1);
+    }
+
+    /* ⚡ 快門閃光燈效果 */
+    #flash-effect {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 60;
+      transition: opacity 0.1s ease-out;
+    }
+
+    #flash-effect.flash-active {
+      opacity: 0.95;
+    }
+
     #countdown-overlay {
       position: absolute;
       top: 50%; left: 50%;
@@ -174,6 +195,31 @@
       font-weight: bold;
       color: #fff;
       text-shadow: 0 0 20px rgba(0,0,0,0.8);
+      z-index: 70;
+    }
+
+    /* 🔄 鏡頭翻轉小按鈕 */
+    .flip-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 80;
+      transition: all 0.2s ease;
+    }
+
+    .flip-btn:hover {
+      background: rgba(56, 189, 248, 0.8);
+      transform: rotate(180deg);
     }
 
     /* 按鈕與選單 */
@@ -222,7 +268,7 @@
     }
 
     .btn.success {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
       font-size: 14px;
       background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
@@ -230,8 +276,17 @@
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
     }
 
+    .btn.video-btn {
+      margin-top: 8px;
+      width: 100%;
+      font-size: 13px;
+      background: linear-gradient(135deg, #4c1d95 0%, #8b5cf6 100%);
+      border-color: #c084fc;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+    }
+
     .picker-group {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
     }
 
@@ -246,6 +301,19 @@
       display: flex;
       gap: 6px;
       width: 100%;
+    }
+
+    /* 🎨 濾鏡選擇下拉選單 */
+    .filter-select {
+      width: 100%;
+      padding: 8px 10px;
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
     }
 
     .frame-option {
@@ -269,7 +337,7 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框精確尺寸與 Y 軸座標 (1.02 倍照片 + 間距 5.8px) */
+    /* 🎯 拍貼框精確尺寸與 Y 軸座標（保持完全不變） */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -330,6 +398,12 @@
       cursor: pointer;
     }
 
+    /* 🎨 CSS 濾鏡樣式定義 */
+    .filter-none { filter: none; }
+    .filter-bw { filter: grayscale(100%) contrast(115%); }
+    .filter-vintage { filter: sepia(35%) contrast(95%) brightness(105%); }
+    .filter-vivid { filter: saturate(150%) contrast(110%); }
+
     /* 隱藏的 YouTube 播放器容器 */
     #youtube-player-container {
       position: absolute;
@@ -377,8 +451,10 @@
       <!-- 左側：控制面板區 -->
       <div class="controls-panel">
         <div class="camera-container">
-          <video id="webcam" autoplay playsinline muted></video>
+          <video id="webcam" class="filter-none" autoplay playsinline muted></video>
+          <div id="flash-effect"></div>
           <div id="countdown-overlay"></div>
+          <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
         <div class="buttons">
@@ -386,6 +462,18 @@
           <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
         </div>
 
+        <!-- 🎨 濾鏡選擇區 -->
+        <div class="picker-group">
+          <label>✨ 選擇照片濾鏡風格：</label>
+          <select id="filter-select" class="filter-select">
+            <option value="none">原圖風格 (Original)</option>
+            <option value="vintage">韓系柔焦 (Soft Vintage)</option>
+            <option value="bw">黑白冷調 (Monochrome)</option>
+            <option value="vivid">鮮豔奶油 (Vivid Pop)</option>
+          </select>
+        </div>
+
+        <!-- 相框選擇區 -->
         <div class="picker-group">
           <label>🖼️ 選擇專屬相框：</label>
           <div class="options-row">
@@ -398,7 +486,8 @@
           </div>
         </div>
 
-        <button id="download-btn" class="btn success" disabled>下載 / 長按儲存作品 💾</button>
+        <button id="download-btn" class="btn success" disabled>下載照片作品 💾</button>
+        <button id="download-video-btn" class="btn video-btn" disabled>下載拍攝動態影片 🎥</button>
       </div>
 
       <!-- 右側：拍貼預覽區 -->
