@@ -16,56 +16,58 @@
   <div class="container">
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
-    <!-- 控制面板區 -->
-    <div class="controls-panel">
-      <div class="camera-container">
-        <video id="webcam" autoplay playsinline muted></video>
-        <div id="countdown-overlay"></div>
-      </div>
-
-      <div class="buttons">
-        <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
-        <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
-      </div>
-
-      <div class="picker-group">
-        <label>✨ 選擇特效濾鏡：</label>
-        <div class="options-row">
-          <button class="filter-btn active" data-filter="normal">原圖</button>
-          <button class="filter-btn" data-filter="beauty">美肌</button>
-          <button class="filter-btn" data-filter="retro">復古</button>
-          <button class="filter-btn" data-filter="vintage">膠片</button>
-          <button class="filter-btn" data-filter="bw">黑白</button>
+    <div class="main-layout">
+      <!-- 左側：控制面板區 -->
+      <div class="controls-panel">
+        <div class="camera-container">
+          <video id="webcam" autoplay playsinline muted></video>
+          <div id="countdown-overlay"></div>
         </div>
-      </div>
 
-      <div class="picker-group">
-        <label>🖼️ 選擇專屬相框：</label>
-        <div class="options-row">
-          <div class="frame-option active" data-frame="warm">
-            <img src="frame_warm.png" alt="暖色手繪框">
-          </div>
-          <div class="frame-option" data-frame="cool">
-            <img src="frame_cool.png" alt="銀河藍色框">
+        <div class="buttons">
+          <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
+          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+        </div>
+
+        <div class="picker-group">
+          <label>✨ 選擇特效濾鏡：</label>
+          <div class="options-row">
+            <button class="filter-btn active" data-filter="normal">原圖</button>
+            <button class="filter-btn" data-filter="beauty">美肌</button>
+            <button class="filter-btn" data-filter="retro">復古</button>
+            <button class="filter-btn" data-filter="vintage">膠片</button>
+            <button class="filter-btn" data-filter="bw">黑白</button>
           </div>
         </div>
-      </div>
 
-      <button id="download-btn" class="btn success" disabled>下載 / 長按儲存作品 💾</button>
-    </div>
-
-    <!-- 拍貼預覽區 -->
-    <div class="preview-panel">
-      <div id="photo-strip">
-        <div class="photo-layer">
-          <div class="photo-frame"><canvas id="canvas1"></canvas></div>
-          <div class="photo-frame"><canvas id="canvas2"></canvas></div>
-          <div class="photo-frame"><canvas id="canvas3"></canvas></div>
-          <div class="photo-frame"><canvas id="canvas4"></canvas></div>
+        <div class="picker-group">
+          <label>🖼️ 選擇專屬相框：</label>
+          <div class="options-row">
+            <div class="frame-option active" data-frame="warm">
+              <img src="frame_warm.png" alt="暖色手繪框">
+            </div>
+            <div class="frame-option" data-frame="cool">
+              <img src="frame_cool.png" alt="銀河藍色框">
+            </div>
+          </div>
         </div>
 
-        <img id="frame-overlay" src="frame_warm.png" alt="相框">
-        <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
+        <button id="download-btn" class="btn success" disabled>下載 / 長按儲存作品 💾</button>
+      </div>
+
+      <!-- 右側：拍貼預覽區 -->
+      <div class="preview-panel">
+        <div id="photo-strip">
+          <div class="photo-layer">
+            <div class="photo-frame"><canvas id="canvas1"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas2"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas3"></canvas></div>
+            <div class="photo-frame"><canvas id="canvas4"></canvas></div>
+          </div>
+
+          <img id="frame-overlay" src="frame_warm.png" alt="相框">
+          <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
+        </div>
       </div>
     </div>
   </div>

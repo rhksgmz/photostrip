@@ -17,7 +17,6 @@ const canvases = [
   document.getElementById('canvas4')
 ];
 
-// 保存未加濾鏡原始影像（供即時切換濾鏡使用）
 const rawPhotoData = [null, null, null, null];
 
 const frameSources = {
@@ -43,7 +42,7 @@ navigator.mediaDevices.getUserMedia({
 .then(stream => { webcam.srcObject = stream; })
 .catch(err => { alert("無法開啟相機，請確認允許授權！"); });
 
-// 2. 切換濾鏡 (直接重繪 Canvas 像素，徹底根治 html2canvas 跑圖問題)
+// 2. 切換濾鏡
 filterBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -54,7 +53,6 @@ filterBtns.forEach(btn => {
     
     webcam.style.filter = filterCanvasMap[currentFilterKey];
 
-    // 如果已經拍照，將原始相片重新以新濾鏡繪製至 Canvas 像素
     if (hasShot) {
       canvases.forEach((canvas, index) => {
         if (rawPhotoData[index]) {
@@ -120,15 +118,14 @@ function countdown(seconds) {
   });
 }
 
-// 拍攝照片並儲存 Raw Data
+// 🎯 同步更新：拍攝 500 * 350 像素放大相片
 function takePhoto(index) {
   const canvas = canvases[index];
   const targetWidth = 500;
-  const targetHeight = 332;
+  const targetHeight = 350;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
-  // 1. 建立離屏 Canvas 擷取視訊原始圖像
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = targetWidth;
   tempCanvas.height = targetHeight;
@@ -156,25 +153,18 @@ function takePhoto(index) {
   tempCtx.scale(-1, 1);
   tempCtx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 
-  // 2. 保存原始圖像
   rawPhotoData[index] = tempCanvas;
-
-  // 3. 直接帶有濾鏡渲染至顯示用 Canvas 上
   renderCanvasWithFilter(canvas, tempCanvas, currentFilterKey);
 }
 
-// 將圖像帶濾鏡繪製至目標 Canvas (像素級刻入)
 function renderCanvasWithFilter(targetCanvas, sourceCanvas, filterKey) {
   const ctx = targetCanvas.getContext('2d');
   ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
-  
-  // 🎯 關鍵重點：直接將濾鏡寫入 Context，產生的圖像會自帶色彩濾鏡像素！
   ctx.filter = filterCanvasMap[filterKey];
   ctx.drawImage(sourceCanvas, 0, 0);
-  ctx.filter = 'none'; // 重置 filter 避免後續繪圖受影響
+  ctx.filter = 'none';
 }
 
-// 合成最終作品
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
@@ -187,7 +177,6 @@ function generateFinalImage() {
   });
 }
 
-// 重拍
 retakeBtn.addEventListener('click', () => {
   canvases.forEach((canvas, index) => {
     const ctx = canvas.getContext('2d');
@@ -199,7 +188,6 @@ retakeBtn.addEventListener('click', () => {
   downloadBtn.disabled = true;
 });
 
-// 下載按鈕
 downloadBtn.addEventListener('click', () => {
   if (finalResultImg.src && hasShot) {
     const link = document.createElement('a');

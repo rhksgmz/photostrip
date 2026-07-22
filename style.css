@@ -1,7 +1,7 @@
 /* =========================================================
-   1. 重置與防爆版星空背景
+   1. 重置與 100% 穩定星空背景
    ========================================================= */
-* {
+*, *::before, *::after {
   box-sizing: border-box !important;
   margin: 0;
   padding: 0;
@@ -29,14 +29,10 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
+/* 主容器 */
 .container {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
   background: rgba(23, 25, 38, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -44,7 +40,16 @@ html, body {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 780px;
+  max-width: 720px;
+  width: 100%;
+}
+
+/* 🎯 網格雙欄佈局 (徹底防止格式擠壓跑版) */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 20px;
+  align-items: start;
   width: 100%;
 }
 
@@ -55,7 +60,7 @@ h1.exo-title {
   font-weight: 800;
   font-size: 21px;
   letter-spacing: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 15px;
   color: #ffffff;
   text-transform: uppercase;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
@@ -64,8 +69,6 @@ h1.exo-title {
 }
 
 .controls-panel {
-  flex: 1 1 300px;
-  max-width: 380px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -73,7 +76,6 @@ h1.exo-title {
 }
 
 .preview-panel {
-  flex: 0 0 240px;
   width: 240px;
   display: flex;
   justify-content: center;
@@ -81,7 +83,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   2. 相機與藍色外發光按鈕
+   2. 相機與藍色霓虹發光按鈕
    ========================================================= */
 .camera-container {
   position: relative;
@@ -222,7 +224,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   3. 拍貼框圖層 (間距 5px + 整體往上移至 26px)
+   3. 拍貼框圖層 (照片放大至 140px，徹底填滿下方留白)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -241,11 +243,12 @@ h1.exo-title {
   z-index: 1;
 }
 
+/* 🎯 照片放大：高度由 133px 加大至 140px */
 .photo-frame {
   position: absolute;
   left: 20px;
   width: 200px;
-  height: 133px;
+  height: 140px;
   background-color: #000;
   overflow: hidden;
   border-radius: 12px;
@@ -260,11 +263,11 @@ h1.exo-title {
   object-fit: cover !important;
 }
 
-/* 🎯 精密 Y 軸定位：整體上移 0.3cm，間距縮減至 5px */
-.photo-frame:nth-child(1) { top: 26px; }
-.photo-frame:nth-child(2) { top: 164px; }
-.photo-frame:nth-child(3) { top: 302px; }
-.photo-frame:nth-child(4) { top: 440px; }
+/* 🎯 精密推算座標：第一張 top: 24px，間距 4px (完全蓋過下緣洞口) */
+.photo-frame:nth-child(1) { top: 24px; }
+.photo-frame:nth-child(2) { top: 168px; } /* 24 + 140 + 4 */
+.photo-frame:nth-child(3) { top: 312px; } /* 168 + 140 + 4 */
+.photo-frame:nth-child(4) { top: 456px; } /* 312 + 140 + 4 */
 
 #frame-overlay {
   position: absolute;
@@ -284,12 +287,16 @@ h1.exo-title {
   cursor: pointer;
 }
 
+/* 📱 手機螢幕自動改為單欄適配 */
 @media (max-width: 600px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
   .container { padding: 12px; }
   .controls-panel { max-width: 100%; }
   #photo-strip {
     transform: scale(0.92);
     transform-origin: top center;
   }
-  .preview-panel { margin-top: -20px; }
 }
