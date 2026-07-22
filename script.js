@@ -1,3 +1,40 @@
+// ==========================================
+// 🔴 Firebase 即時數據同步設定
+// ==========================================
+const firebaseConfig = {
+  databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/" // 使用公開測試通道
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// 在線人數即時同步
+const onlineCountEl = document.getElementById('online-count');
+const myConnectionRef = db.ref('presence').push();
+myConnectionRef.onDisconnect().remove();
+myConnectionRef.set(true);
+
+db.ref('presence').on('value', (snapshot) => {
+  const count = snapshot.numChildren();
+  if (onlineCountEl) {
+    onlineCountEl.innerText = count > 0 ? count : 1;
+  }
+});
+
+// 累積拍攝次數即時同步
+const totalShotsEl = document.getElementById('total-shots');
+db.ref('stats/totalShots').on('value', (snapshot) => {
+  const val = snapshot.val();
+  if (val !== null && totalShotsEl) {
+    totalShotsEl.innerText = val;
+  } else if (totalShotsEl) {
+    db.ref('stats/totalShots').set(128); // 初始值
+  }
+});
+
+
+// ==========================================
+// 📸 拍貼機核心程式碼
+// ==========================================
 const webcam = document.getElementById('webcam');
 const startBtn = document.getElementById('start-btn');
 const retakeBtn = document.getElementById('retake-btn');
@@ -18,10 +55,6 @@ const recordCtx = videoRecordCanvas.getContext('2d');
 const musicBtn = document.getElementById('music-btn');
 const musicIcon = document.getElementById('music-icon');
 const musicText = document.getElementById('music-text');
-
-const totalShotsEl = document.getElementById('total-shots');
-let totalShotsCount = parseInt(localStorage.getItem('total_shots')) || 128;
-if (totalShotsEl) totalShotsEl.innerText = totalShotsCount;
 
 let player;
 let isPlaying = false;
@@ -223,7 +256,6 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 讓四個格子在 5 秒拍攝期間「同時動態更新」的渲染核心
 function renderAllActiveFrames(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -283,7 +315,6 @@ function run5SecCountdown(seconds) {
 }
 
 async function startPhotography() {
-  // 🎯 點擊開始連拍瞬間自動播放 BGM 音樂
   if (player && typeof player.playVideo === 'function') {
     if (!isPlaying) {
       if (typeof player.nextVideo === 'function') {
@@ -338,16 +369,13 @@ async function startPhotography() {
     }
   }
 
-  // 4 張照片，每張拍攝/倒數時間為 5 秒
   for (let i = 0; i < 4; i++) {
     startRecordingLoop(i);
-
     await run5SecCountdown(5); // 每格 5 秒
     
     isRecordingActive = false;
     triggerFlash();
-    takePhoto(canvases[i]); // 5 秒結束瞬間拍照定格
-    
+    takePhoto(canvases[i]); 
     isRecordingActive = true;
   }
 
@@ -366,10 +394,10 @@ async function startPhotography() {
   hasShot = true;
   generateFinalImage();
 
-  // 📸 更新拍攝次數
-  totalShotsCount++;
-  if (totalShotsEl) totalShotsEl.innerText = totalShotsCount;
-  localStorage.setItem('total_shots', totalShotsCount);
+  // 📸 雲端拍攝次數 +1
+  db.ref('stats/totalShots').transaction((current) => {
+    return (current || 128) + 1;
+  });
 
   startBtn.disabled = false;
   retakeBtn.disabled = false;

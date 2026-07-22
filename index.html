@@ -17,6 +17,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 
+  <!-- 🎯 載入 Firebase 官方 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     html, body, div, h1, p, video, canvas, img, button, label {
       box-sizing: border-box !important;
@@ -443,7 +447,7 @@
     <!-- 📊 統計面板 -->
     <div class="stats-panel">
       <span>🟢 在線人數：<span id="online-count">1</span> 人</span>
-      <span>📸 累積拍攝次數：<span id="total-shots">128</span> 次</span>
+      <span>📸 累積拍攝次數：<span id="total-shots">0</span> 次</span>
     </div>
     
     <div class="main-layout">
