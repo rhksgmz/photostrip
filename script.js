@@ -13,6 +13,9 @@ const frameOverlay = document.getElementById('frame-overlay');
 const finalResultImg = document.getElementById('final-result-img');
 const frameOptions = document.querySelectorAll('.frame-option');
 
+const videoRecordCanvas = document.getElementById('video-record-canvas');
+const recordCtx = videoRecordCanvas.getContext('2d');
+
 const musicBtn = document.getElementById('music-btn');
 const musicIcon = document.getElementById('music-icon');
 const musicText = document.getElementById('music-text');
@@ -24,8 +27,17 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
 let currentFilter = 'none';
+let recordAnimationId = null;
 
-// 1. YouTube BGM API
+// 精確的照片與相框繪製參數
+const PHOTO_POSITIONS = [
+  { left: 18, top: 32, width: 204, height: 141 },
+  { left: 18, top: 178.8, width: 204, height: 141 },
+  { left: 18, top: 325.6, width: 204, height: 141 },
+  { left: 18, top: 472.4, width: 204, height: 141 }
+];
+
+// 1. YouTube BGM
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('yt-player', {
     height: '1',
@@ -86,7 +98,7 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 2. 開啟與切換相機
+// 2. 相機設定與翻轉
 function initCamera() {
   if (webcam.srcObject) {
     webcam.srcObject.getTracks().forEach(track => track.stop());
@@ -108,10 +120,9 @@ function initCamera() {
     }
   })
   .catch(err => {
-    // 若無法開啟特定鏡頭則退回預設相機
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => { webcam.srcObject = stream; })
-      .catch(e => alert("無法開啟相機，請確認瀏覽器相機權限！"));
+      .catch(e => alert("無法開啟相機，請確認瀏覽器權限！"));
   });
 }
 
@@ -122,7 +133,7 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 3. 即時預覽濾鏡切換
+// 3. 濾鏡處理
 filterSelect.addEventListener('change', (e) => {
   currentFilter = e.target.value;
   applyCSSFilter(webcam, currentFilter);
@@ -140,7 +151,6 @@ function applyCSSFilter(element, filterType) {
   }
 }
 
-// 4. 全平台相容的相片像素級濾鏡算法（解決不同裝置 Canvas 濾鏡失效問題）
 function applyPixelFilter(ctx, width, height, filterType) {
   if (filterType === 'none') return;
 
@@ -153,18 +163,15 @@ function applyPixelFilter(ctx, width, height, filterType) {
     let b = data[i + 2];
 
     if (filterType === 'bw') {
-      // 黑白高對比
       let avg = 0.299 * r + 0.587 * g + 0.114 * b;
-      avg = (avg - 128) * 1.15 + 128; // 對比提升
+      avg = (avg - 128) * 1.15 + 128;
       avg = Math.min(255, Math.max(0, avg));
       data[i] = data[i + 1] = data[i + 2] = avg;
     } else if (filterType === 'vintage') {
-      // 復古暖色調
       data[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
       data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
       data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
     } else if (filterType === 'vivid') {
-      // 鮮豔奶油感
       data[i]     = Math.min(255, r * 1.2);
       data[i + 1] = Math.min(255, g * 1.1);
       data[i + 2] = Math.min(255, b * 0.9);
@@ -174,7 +181,7 @@ function applyPixelFilter(ctx, width, height, filterType) {
   ctx.putImageData(imgData, 0, 0);
 }
 
-// 5. 拍攝與錄影流程
+// 4. 拍攝與動畫相框側錄
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -203,6 +210,35 @@ frameOptions.forEach(option => {
   });
 });
 
+// 🎯 即時繪製「相框 + 已拍照片 + 即時鏡頭」至錄影畫布
+function renderFullStripToCanvas(currentActiveIndex) {
+  recordCtx.clearRect(0, 0, 240, 720);
+
+  PHOTO_POSITIONS.forEach((pos, idx) => {
+    recordCtx.save();
+    
+    // 如果是正在拍的那一格，渲染即時鏡頭畫面
+    if (idx === currentActiveIndex) {
+      if (currentFacingMode === 'user') {
+        recordCtx.translate(pos.left + pos.width, pos.top);
+        recordCtx.scale(-1, 1);
+        recordCtx.drawImage(webcam, 0, 0, pos.width, pos.height);
+      } else {
+        recordCtx.drawImage(webcam, pos.left, pos.top, pos.width, pos.height);
+      }
+    } else if (idx < currentActiveIndex) {
+      // 已拍攝好的照片
+      recordCtx.drawImage(canvases[idx], pos.left, pos.top, pos.width, pos.height);
+    }
+    recordCtx.restore();
+  });
+
+  // 最上層蓋上專屬相框圖案
+  if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
+    recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
+  }
+}
+
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -212,9 +248,13 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  // 初始化 MediaRecorder 側錄影片（相容 iOS / Safari / Android）
-  if (webcam.srcObject && window.MediaRecorder) {
+  // 清空以往畫布
+  canvases.forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
+
+  // 開啟錄影 Stream (擷取 30 FPS 的相框動態畫布)
+  if (videoRecordCanvas.captureStream && window.MediaRecorder) {
     try {
+      const recordStream = videoRecordCanvas.captureStream(30);
       let options = {};
       if (MediaRecorder.isTypeSupported('video/mp4')) {
         options = { mimeType: 'video/mp4' };
@@ -224,23 +264,37 @@ async function startPhotography() {
         options = { mimeType: 'video/webm' };
       }
 
-      mediaRecorder = new MediaRecorder(webcam.srcObject, options);
+      mediaRecorder = new MediaRecorder(recordStream, options);
       mediaRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) recordedChunks.push(e.data);
       };
-      mediaRecorder.start(200);
+      mediaRecorder.start(100);
     } catch (e) {
-      console.log("裝置錄影初始化受限：", e);
+      console.log("影音錄影初始化失敗：", e);
     }
   }
 
   for (let i = 0; i < 4; i++) {
+    // 拍攝期間動態更新合成畫布
+    const updateFrameLoop = () => {
+      renderFullStripToCanvas(i);
+      recordAnimationId = requestAnimationFrame(updateFrameLoop);
+    };
+    updateFrameLoop();
+
     await countdown(3);
+    cancelAnimationFrame(recordAnimationId);
+    
     triggerFlash();
     takePhoto(canvases[i]);
+    
+    // 拍完當下瞬間渲染一次靜態照片
+    renderFullStripToCanvas(i + 1);
   }
 
-  // 結束錄影並打包影片
+  // 拍照完成後，錄影多延續 2 秒展示完整拍貼作品
+  await new Promise(r => setTimeout(r, 2000));
+
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
     mediaRecorder.onstop = () => {
@@ -318,7 +372,6 @@ function takePhoto(canvas) {
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
   ctx.restore();
 
-  // 套用像素級濾鏡，確保跨平台成功渲染
   applyPixelFilter(ctx, targetWidth, targetHeight, currentFilter);
 }
 

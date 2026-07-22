@@ -391,8 +391,8 @@
       cursor: pointer;
     }
 
-    /* 隱藏的 YouTube 播放器容器 */
-    #youtube-player-container {
+    /* 隱藏的音訊與後台錄影 Canvas */
+    #youtube-player-container, #hidden-recorder-container {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -430,6 +430,11 @@
     <!-- 背景隱藏的 YouTube 歌單播放器 -->
     <div id="youtube-player-container">
       <div id="yt-player"></div>
+    </div>
+
+    <!-- 🎥 用於合成立體相框影片的隱藏畫布 -->
+    <div id="hidden-recorder-container">
+      <canvas id="video-record-canvas" width="240" height="720"></canvas>
     </div>
 
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
@@ -474,7 +479,7 @@
         </div>
 
         <button id="download-btn" class="btn success" disabled>下載照片作品 💾</button>
-        <button id="download-video-btn" class="btn video-btn" disabled>下載拍攝動態影片 🎥</button>
+        <button id="download-video-btn" class="btn video-btn" disabled>下載動態相框影片 🎥</button>
       </div>
 
       <!-- 右側：拍貼預覽區 -->
