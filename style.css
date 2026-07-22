@@ -1,5 +1,5 @@
 /* =========================================================
-   3. 拍貼框圖層 (第一張不動 + 間距縮半為 7px)
+   3. 拍貼框圖層 (4張照片同時往上 0.25 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -18,7 +18,7 @@
   z-index: 1;
 }
 
-/* 照片尺寸維持寬 200px / 高 138px */
+/* 照片尺寸維持寬 200px / 高 138px (填滿洞口不露白) */
 .photo-frame {
   position: absolute;
   left: 20px;
@@ -39,12 +39,12 @@
 }
 
 /* ---------------------------------------------------------
-   🎯 第一張位置不動 (40px) + 間距縮減為 7px
+   🎯 精密 Y 軸座標 (整體往上移動 7px / 0.25cm，間距維持 7px)
    --------------------------------------------------------- */
-.photo-frame:nth-child(1) { top: 40px; }
-.photo-frame:nth-child(2) { top: 185px; } /* 40 + 138 + 7 */
-.photo-frame:nth-child(3) { top: 330px; } /* 185 + 138 + 7 */
-.photo-frame:nth-child(4) { top: 475px; } /* 330 + 138 + 7 */
+.photo-frame:nth-child(1) { top: 33px; }
+.photo-frame:nth-child(2) { top: 178px; } /* 33 + 138 + 7 */
+.photo-frame:nth-child(3) { top: 323px; } /* 178 + 138 + 7 */
+.photo-frame:nth-child(4) { top: 468px; } /* 323 + 138 + 7 */
 
 #frame-overlay {
   position: absolute;
