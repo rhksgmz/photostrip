@@ -107,12 +107,27 @@
       font-weight: 800;
       font-size: 20px;
       letter-spacing: 2px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       color: #ffffff;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
                   0 0 20px rgba(99, 102, 241, 0.9),
                   0 0 30px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 📊 統計面板樣式 */
+    .stats-panel {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #38bdf8;
+      font-weight: bold;
     }
 
     .controls-panel {
@@ -262,7 +277,7 @@
     }
 
     .picker-group {
-      margin-top: 15px;
+      margin-top: 12px;
       width: 100%;
     }
 
@@ -424,6 +439,12 @@
     </div>
 
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
+
+    <!-- 📊 統計面板 -->
+    <div class="stats-panel">
+      <span>🟢 在線人數：<span id="online-count">1</span> 人</span>
+      <span>📸 累積拍攝次數：<span id="total-shots">128</span> 次</span>
+    </div>
     
     <div class="main-layout">
       <div class="controls-panel">
