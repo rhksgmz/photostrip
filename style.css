@@ -1,10 +1,235 @@
 /* =========================================================
-   3. 拍貼框圖層 (照片加大至 156px 高度 + 精準 0.5cm 固定間距)
+   1. 全局重置與星空背景
+   ========================================================= */
+* {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #090a0f;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  background-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat;
+  background-size: 300px 300px, 300px 300px, 300px 300px, 300px 300px, 300px 300px, 100% 100%;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  position: relative;
+  overflow-x: hidden;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  background: rgba(23, 25, 38, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  max-width: 780px;
+  width: 100%;
+}
+
+/* EXO 標題字體 */
+h1.exo-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'Orbitron', -apple-system, sans-serif !important;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
+              0 0 20px rgba(99, 102, 241, 0.9),
+              0 0 30px rgba(56, 189, 248, 0.5);
+}
+
+.controls-panel {
+  flex: 1 1 300px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-panel {
+  flex: 0 0 240px;
+  width: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =========================================================
+   2. 控制按鈕與發光樣式
+   ========================================================= */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#webcam {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  transition: filter 0.3s ease;
+}
+
+#countdown-overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 80px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 10px;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.btn.secondary {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #93c5fd;
+}
+
+.btn.success {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+}
+
+.picker-group {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.picker-group label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.options-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: #0f172a;
+  border: 1px solid #1e3a8a;
+  color: #93c5fd;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.filter-btn.active {
+  border-color: #38bdf8;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.frame-option {
+  flex: 1;
+  height: 50px;
+  background: #0f172a;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.frame-option.active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+}
+
+.frame-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================================
+   3. 🎯 拍貼框精密定位 (對應 600*1800 比例與 345*500 照片)[cite: 1, 2]
    ========================================================= */
 #photo-strip {
   position: relative;
-  width: 240px;
-  height: 720px;
+  width: 240px;   /* 600px 預覽縮放 */
+  height: 720px;  /* 1800px 預覽縮放 */
   background-color: #000;
   overflow: hidden;
   border-radius: 4px;
@@ -18,12 +243,12 @@
   z-index: 1;
 }
 
-/* 🎯 照片再次放大：寬 200px / 高 156px（徹底填滿相框洞口） */
+/* 🎯 照片比例：500*345 (縮放後寬 200px / 高 138px) */
 .photo-frame {
   position: absolute;
   left: 20px;
   width: 200px;
-  height: 156px;
+  height: 138px;
   background-color: #111;
   overflow: hidden;
   border-radius: 2px;
@@ -40,26 +265,26 @@
 }
 
 /* ---------------------------------------------------------
-   🎯 精密推算座標 (間距維持 14px ≒ 0.5 公分)
+   🎯 精密計算 (頂部離 1cm ≒ 40px，每張間距 0.5cm ≒ 14px)
    --------------------------------------------------------- */
-/* 第 1 張照片 */
+/* 第 1 張照片：頂部距離 1 公分 (40px) */
 .photo-frame:nth-child(1) {
-  top: 30px;
+  top: 40px;
 }
 
-/* 第 2 張照片：30 + 156 + 14 = 200px */
+/* 第 2 張照片：40 + 138 + 14 = 192px */
 .photo-frame:nth-child(2) {
-  top: 200px;
+  top: 192px;
 }
 
-/* 第 3 張照片：200 + 156 + 14 = 370px */
+/* 第 3 張照片：192 + 138 + 14 = 344px */
 .photo-frame:nth-child(3) {
-  top: 370px;
+  top: 344px;
 }
 
-/* 第 4 張照片：370 + 156 + 14 = 540px (底部位於 696px，完整填滿底部) */
+/* 第 4 張照片：344 + 138 + 14 = 496px (底部至 634px，預留底部空間給 LOGO) */
 .photo-frame:nth-child(4) {
-  top: 540px;
+  top: 496px;
 }
 
 #frame-overlay {
@@ -78,4 +303,14 @@
   z-index: 10;
   object-fit: fill;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  .controls-panel { max-width: 100%; }
+  #photo-strip {
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+  .preview-panel { margin-top: -20px; }
 }

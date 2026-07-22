@@ -75,7 +75,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 連拍
+// 4. 連拍倒數
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -114,11 +114,12 @@ function countdown(seconds) {
   });
 }
 
+// 🎯 核心修復：精確以 500 * 345 像素繪製相片
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   
   const targetWidth = 500;
-  const targetHeight = 305;
+  const targetHeight = 345;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
@@ -153,7 +154,7 @@ function takePhoto(canvas) {
 // 產生供長按下載的高清圖片
 function generateFinalImage() {
   html2canvas(photoStrip, { 
-    scale: 3, 
+    scale: 2.5,  /* 輸出 600 * 1800 高清解析度 */
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
