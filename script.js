@@ -233,7 +233,7 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 讓四個格子在 10 秒拍攝期間「同時動態更新」的渲染核心
+// 🎯 讓四個格子在 5 秒拍攝期間「同時動態更新」的渲染核心
 function renderAllActiveFrames(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -272,8 +272,8 @@ function startRecordingLoop(currentActiveIndex) {
   requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
 }
 
-// 🎯 專門設定為 10 秒的倒數計時器
-function run10SecCountdown(seconds) {
+// 🎯 專門設定為 5 秒的倒數計時器
+function run5SecCountdown(seconds) {
   return new Promise(resolve => {
     let count = seconds;
     countdownOverlay.innerText = count;
@@ -335,15 +335,15 @@ async function startPhotography() {
     }
   }
 
-  // 4 張照片，每張拍攝/倒數時間為 10 秒
+  // 4 張照片，每張拍攝/倒數時間為 5 秒
   for (let i = 0; i < 4; i++) {
     startRecordingLoop(i);
 
-    await run10SecCountdown(10); // 每一格倒數 10 秒，對應 10 秒影片段落
+    await run5SecCountdown(5); // 每一格倒數 5 秒，對應 5 秒影片段落
     
     isRecordingActive = false;
     triggerFlash();
-    takePhoto(canvases[i]); // 10秒結束瞬間拍照定格
+    takePhoto(canvases[i]); // 5秒結束瞬間拍照定格
     
     isRecordingActive = true;
   }
