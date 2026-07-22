@@ -72,7 +72,7 @@ h1.exo-title {
   flex-direction: column;
   align-items: center;
   position: relative;
-  z-index: 50; /* 提升控制面板層級 */
+  z-index: 50;
 }
 
 .preview-panel {
@@ -83,7 +83,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   2. 相機與藍色按鈕 (最高優先層級，確保絕對不被圖檔遮擋)
+   2. 相機與按鈕
    ========================================================= */
 .camera-container {
   position: relative;
@@ -121,7 +121,7 @@ h1.exo-title {
 
 .btn {
   position: relative;
-  z-index: 100; /* 🎯 關鍵修復：下載與重拍按鈕永遠置頂 */
+  z-index: 100;
   flex: 1;
   padding: 12px 10px;
   border: 1px solid rgba(56, 189, 248, 0.5);
@@ -157,7 +157,7 @@ h1.exo-title {
 }
 
 .btn.success {
-  margin-top: 12px;
+  margin-top: 15px;
   width: 100%;
   font-size: 14px;
   background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
@@ -166,7 +166,7 @@ h1.exo-title {
 }
 
 .picker-group {
-  margin-top: 12px;
+  margin-top: 15px;
   width: 100%;
 }
 
@@ -181,26 +181,6 @@ h1.exo-title {
   display: flex;
   gap: 6px;
   width: 100%;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #0f172a;
-  border: 1px solid #1e3a8a;
-  color: #93c5fd;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.filter-btn.active {
-  border-color: #38bdf8;
-  background: #1e3a8a;
-  color: #ffffff;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
 }
 
 .frame-option {
@@ -225,7 +205,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   3. 拍貼框圖層 (頂距 83px 換算 + 照片 500*345 比例換算)
+   3. 🎯 拍貼框精確對位 (修正後 100% 貼合 EXhOrizon 框)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -244,12 +224,12 @@ h1.exo-title {
   z-index: 1;
 }
 
-/* 🎯 依據原圖 500 * 345 換算的精確孔洞尺寸 (寬 200px / 高 138px) */
+/* 🎯 照片尺寸調整：寬度 200px / 高度 125px */
 .photo-frame {
   position: absolute;
   left: 20px;
   width: 200px;
-  height: 138px;
+  height: 125px;
   background-color: #000;
   overflow: hidden;
   border-radius: 12px;
@@ -265,12 +245,12 @@ h1.exo-title {
 }
 
 /* ---------------------------------------------------------
-   🎯 精密 Y 軸對位 (頂離 83px ➔ 33px，相鄰間距 14px ≒ 0.5cm)
+   🎯 精準座標 (第一張 top: 40px，間距 10px)
    --------------------------------------------------------- */
-.photo-frame:nth-child(1) { top: 33px; }
-.photo-frame:nth-child(2) { top: 185px; } /* 33 + 138 + 14 */
-.photo-frame:nth-child(3) { top: 337px; } /* 185 + 138 + 14 */
-.photo-frame:nth-child(4) { top: 489px; } /* 337 + 138 + 14 */
+.photo-frame:nth-child(1) { top: 40px; }
+.photo-frame:nth-child(2) { top: 175px; } /* 40 + 125 + 10 */
+.photo-frame:nth-child(3) { top: 310px; } /* 175 + 125 + 10 */
+.photo-frame:nth-child(4) { top: 445px; } /* 310 + 125 + 10 (底部位於 570px，完美留白) */
 
 #frame-overlay {
   position: absolute;
@@ -281,7 +261,6 @@ h1.exo-title {
   pointer-events: none;
 }
 
-/* 長按儲存層 (限於相框內部，絕不擋到按鈕) */
 #final-result-img {
   position: absolute;
   top: 0; left: 0;

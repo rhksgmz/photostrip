@@ -8,7 +8,6 @@ const photoStrip = document.getElementById('photo-strip');
 const frameOverlay = document.getElementById('frame-overlay');
 const finalResultImg = document.getElementById('final-result-img');
 const frameOptions = document.querySelectorAll('.frame-option');
-const filterBtns = document.querySelectorAll('.filter-btn');
 
 const canvases = [
   document.getElementById('canvas1'),
@@ -22,16 +21,6 @@ const frameSources = {
   cool: 'frame_cool.png'
 };
 
-// 🎯 濾鏡暫時不調整（全部保持純原圖狀態）
-const filterCanvasMap = {
-  'normal': 'none',
-  'beauty': 'none',
-  'retro': 'none',
-  'vintage': 'none',
-  'bw': 'none'
-};
-
-let currentFilterKey = 'normal';
 let hasShot = false;
 
 // 1. 開啟相機
@@ -41,18 +30,7 @@ navigator.mediaDevices.getUserMedia({
 .then(stream => { webcam.srcObject = stream; })
 .catch(err => { alert("無法開啟相機，請確認授權權限！"); });
 
-// 2. 切換濾鏡 (暫不附加色彩調色)
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const activeBtn = document.querySelector('.filter-btn.active');
-    if (activeBtn) activeBtn.classList.remove('active');
-    
-    e.currentTarget.classList.add('active');
-    currentFilterKey = e.currentTarget.getAttribute('data-filter');
-  });
-});
-
-// 3. 切換相框
+// 2. 切換相框
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     document.querySelector('.frame-option.active').classList.remove('active');
@@ -67,7 +45,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 4. 開始拍攝流程
+// 3. 開始拍攝流程
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -106,11 +84,11 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 純淨渲染 500 * 345 解析度照片
+// 🎯 純淨渲染照片 (高解析度 500 * 312 像素)
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   const targetWidth = 500;
-  const targetHeight = 345;
+  const targetHeight = 312;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
@@ -137,7 +115,7 @@ function takePhoto(canvas) {
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 }
 
-// 合成最終作品（純圖片層級限制在 photoStrip 容器內）
+// 合成最終作品
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EXhOrizon in Kaohsiung</title>
   
-  <!-- 載入 EXO 專屬科技金屬感字體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
@@ -17,7 +16,7 @@
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
     <div class="main-layout">
-      <!-- 左側：控制面板區 -->
+      <!-- 左側：控制面板區 (已移除濾鏡按鈕) -->
       <div class="controls-panel">
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
@@ -29,17 +28,7 @@
           <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
         </div>
 
-        <div class="picker-group">
-          <label>✨ 選擇特效濾鏡：</label>
-          <div class="options-row">
-            <button class="filter-btn active" data-filter="normal">原圖</button>
-            <button class="filter-btn" data-filter="beauty">美肌</button>
-            <button class="filter-btn" data-filter="retro">復古</button>
-            <button class="filter-btn" data-filter="vintage">膠片</button>
-            <button class="filter-btn" data-filter="bw">黑白</button>
-          </div>
-        </div>
-
+        <!-- 相框選擇區 -->
         <div class="picker-group">
           <label>🖼️ 選擇專屬相框：</label>
           <div class="options-row">
