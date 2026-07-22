@@ -4,18 +4,21 @@
 const firebaseConfig = {
   databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const totalShotsEl = document.getElementById('total-shots');
-db.ref('stats/totalShots').on('value', (snapshot) => {
-  const val = snapshot.val();
-  if (val !== null && totalShotsEl) {
-    totalShotsEl.innerText = val;
-  } else if (totalShotsEl) {
-    db.ref('stats/totalShots').set(128);
-  }
-});
+try {
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const totalShotsEl = document.getElementById('total-shots');
+  db.ref('stats/totalShots').on('value', (snapshot) => {
+    const val = snapshot.val();
+    if (val !== null && totalShotsEl) {
+      totalShotsEl.innerText = val;
+    } else if (totalShotsEl) {
+      db.ref('stats/totalShots').set(128);
+    }
+  });
+} catch (e) {
+  console.log("Firebase 初始化略過：", e);
+}
 
 
 // ==========================================
@@ -82,27 +85,33 @@ let canvases = [
 
 // 1. YouTube BGM
 function onYouTubeIframeAPIReady() {
-  player = new YT.Player('yt-player', {
-    height: '1',
-    width: '1',
-    playerVars: {
-      'listType': 'playlist',
-      'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks',
-      'autoplay': 0,
-      'controls': 0,
-      'loop': 1
-    },
-    events: {
-      'onReady': onPlayerReady
-    }
-  });
+  try {
+    player = new YT.Player('yt-player', {
+      height: '1',
+      width: '1',
+      playerVars: {
+        'listType': 'playlist',
+        'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks',
+        'autoplay': 0,
+        'controls': 0,
+        'loop': 1
+      },
+      events: {
+        'onReady': onPlayerReady
+      }
+    });
+  } catch (e) {
+    console.log("YouTube API 載入略過：", e);
+  }
 }
 
 function onPlayerReady(event) {
-  event.target.setVolume(40);
-  if (typeof player.setShuffle === 'function') {
-    player.setShuffle(true);
-  }
+  try {
+    event.target.setVolume(40);
+    if (typeof player.setShuffle === 'function') {
+      player.setShuffle(true);
+    }
+  } catch (e) {}
 }
 
 function toggleMusic() {
@@ -170,8 +179,13 @@ function playPrintingSound() {
   }
 }
 
-// 3. 相機設定與翻轉
+// 3. 相機設定與翻轉 (加強防呆)
 function initCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("您的瀏覽器不支援相機功能，請使用 Chrome 或 Safari 開啟！");
+    return;
+  }
+
   if (webcam.srcObject) {
     webcam.srcObject.getTracks().forEach(track => track.stop());
   }
@@ -185,11 +199,18 @@ function initCamera() {
   })
   .then(stream => { 
     webcam.srcObject = stream;
+    webcam.play().catch(e => console.log("自動播放被攔截：", e));
   })
   .catch(err => {
+    console.log("高畫質相機開啟失敗，嘗試一般畫質...", err);
     navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => { webcam.srcObject = stream; })
-      .catch(e => alert("無法開啟相機，請確認瀏覽器權限！"));
+      .then(stream => { 
+        webcam.srcObject = stream;
+        webcam.play().catch(e => console.log("自動播放被攔截：", e));
+      })
+      .catch(e => {
+        alert("無法開啟相機，請確認是否已授權相機權限，或網址為 HTTPS 安全連線！");
+      });
   });
 }
 
@@ -198,7 +219,10 @@ flipBtn.addEventListener('click', () => {
   initCamera();
 });
 
-initCamera();
+// 網頁載入後立即初始化相機
+window.addEventListener('DOMContentLoaded', () => {
+  initCamera();
+});
 
 // 🎯 相框切換事件
 let hasShot = false;
@@ -417,9 +441,11 @@ async function startPhotography() {
   hasShot = true;
   generateFinalImage();
 
-  db.ref('stats/totalShots').transaction((current) => {
-    return (current || 128) + 1;
-  });
+  try {
+    db.ref('stats/totalShots').transaction((current) => {
+      return (current || 128) + 1;
+    });
+  } catch (e) {}
 
   startBtn.disabled = false;
   retakeBtn.disabled = false;
