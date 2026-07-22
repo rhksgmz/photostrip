@@ -5,30 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EXhOrizon in Kaohsiung</title>
   
-  <!-- 🎯 網站 Icon 設定 -->
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
-  <!-- 🎯 社群分享縮圖與標題設定 -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="EXhOrizon in Kaohsiung 拍貼機">
   <meta property="og:description" content="來體驗專屬 EXhOrizon 拍貼機，留下你的韓系宇宙風拍貼吧！">
   <meta property="og:image" content="favicon.png">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="EXhOrizon in Kaohsiung 拍貼機">
-  <meta name="twitter:description" content="來體驗專屬 EXhOrizon in Kaohsiung 拍貼機！">
-  <meta name="twitter:image" content="favicon.png">
-
-  <!-- 載入 EXO 專屬科技金屬感字體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 
   <style>
-    /* =========================================================
-       1. 絕對防跑版重置 (全域鎖死)
-       ========================================================= */
     html, body, div, h1, p, video, canvas, img, button, label {
       box-sizing: border-box !important;
       margin: 0;
@@ -55,7 +44,6 @@
       font-family: Arial, sans-serif;
     }
 
-    /* 主卡片容器 */
     .container {
       position: relative;
       z-index: 1;
@@ -70,7 +58,6 @@
       max-width: 95vw;
     }
 
-    /* 🎵 霓虹發光音樂開關按鈕 */
     .music-toggle-btn {
       position: absolute;
       top: 15px;
@@ -146,7 +133,6 @@
       align-items: center;
     }
 
-    /* 相機畫面 */
     .camera-container {
       position: relative;
       width: 100%;
@@ -164,7 +150,6 @@
       transform: scaleX(-1);
     }
 
-    /* ⚡ 快門閃光燈效果 */
     #flash-effect {
       position: absolute;
       top: 0; left: 0;
@@ -184,14 +169,13 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 70px;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 0 0 20px rgba(0,0,0,0.8);
-      z-index: 70;
+      font-size: 80px;
+      font-weight: 900;
+      color: #38bdf8;
+      text-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 10px rgba(56, 189, 248, 0.8);
+      z-index: 999;
     }
 
-    /* 🔄 鏡頭翻轉小按鈕 */
     .flip-btn {
       position: absolute;
       bottom: 10px;
@@ -215,7 +199,6 @@
       transform: rotate(180deg);
     }
 
-    /* 按鈕與選單 */
     .buttons {
       margin-top: 12px;
       display: flex;
@@ -317,7 +300,6 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框精確尺寸與 Y 軸座標 (1.02 倍照片 + 間距 5.8px) */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -354,7 +336,6 @@
       object-fit: cover !important;
     }
 
-    /* 🎯 4 張照片頂距精密定位 */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -365,16 +346,15 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: fill;
-      z-index: 2;
+      z-index: 5;
       pointer-events: none;
     }
 
-    /* 🎞️ 復古印相輸出浮現特效 (Slide down & Fade in) */
     #final-result-img {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      z-index: 10;
+      z-index: 20;
       object-fit: fill;
       cursor: pointer;
       display: none;
@@ -401,7 +381,6 @@
       }
     }
 
-    /* 隱藏的音訊與後台錄影 Canvas */
     #youtube-player-container, #hidden-recorder-container {
       position: absolute;
       width: 1px;
@@ -432,17 +411,14 @@
 </head>
 <body>
   <div class="container">
-    <!-- 🎵 右上角音樂按鈕 -->
     <button id="music-btn" class="music-toggle-btn">
       <span id="music-icon">🎵</span> <span id="music-text">BGM</span>
     </button>
     
-    <!-- 背景隱藏的 YouTube 歌單播放器 -->
     <div id="youtube-player-container">
       <div id="yt-player"></div>
     </div>
 
-    <!-- 🎥 錄影合成畫布 (高清無失真比例) -->
     <div id="hidden-recorder-container">
       <canvas id="video-record-canvas" width="240" height="720"></canvas>
     </div>
@@ -450,7 +426,6 @@
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
     <div class="main-layout">
-      <!-- 左側：控制面板區 -->
       <div class="controls-panel">
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
@@ -459,14 +434,8 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
-        <div class="buttons">
-          <button id="start-btn" class="btn primary">開始連拍 (4張)</button>
-          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
-        </div>
-
-        <!-- 相框選擇區 -->
-        <div class="picker-group">
-          <label>🖼️ 選擇專屬相框：</label>
+        <div class="picker-group" style="margin-top: 5px;">
+          <label>🖼️ 1. 請先選擇專屬相框：</label>
           <div class="options-row">
             <div class="frame-option active" data-frame="warm">
               <img src="frame_warm.png" alt="暖色手繪框">
@@ -477,11 +446,15 @@
           </div>
         </div>
 
+        <div class="buttons">
+          <button id="start-btn" class="btn primary">2. 開始連拍 (4張)</button>
+          <button id="retake-btn" class="btn secondary" disabled>重新拍照</button>
+        </div>
+
         <button id="download-btn" class="btn success" disabled>下載照片作品 💾</button>
         <button id="download-video-btn" class="btn video-btn" disabled>下載動態相框影片 🎥</button>
       </div>
 
-      <!-- 右側：拍貼預覽區 -->
       <div class="preview-panel">
         <div id="photo-strip">
           <div class="photo-layer">
@@ -492,14 +465,13 @@
           </div>
 
           <img id="frame-overlay" src="frame_warm.png" alt="相框">
-          <img id="final-result-img" alt="長按儲存拍貼" style="display: none;">
+          <img id="final-result-img" alt="長按儲存拍貼">
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- 載入 YouTube 官方 API -->
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="script.js"></script>
 </body>
