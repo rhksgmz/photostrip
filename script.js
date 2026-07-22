@@ -29,7 +29,7 @@ let recordedVideoBlob = null;
 let currentFilter = 'none';
 let recordAnimationId = null;
 
-// 精確的相框內 4 張照片成像位置 (對應 CSS 樣式)
+// 精確的相框內 4 張照片成像位置
 const PHOTO_POSITIONS = [
   { left: 18, top: 32, width: 204, height: 141 },
   { left: 18, top: 178.8, width: 204, height: 141 },
@@ -131,22 +131,54 @@ initCamera();
 // 3. 濾鏡切換
 filterSelect.addEventListener('change', (e) => {
   currentFilter = e.target.value;
+  // 即時預覽畫面套用對應樣式
+  applyCSSFilter(webcam, currentFilter);
 });
 
-// 4. 共用的濾鏡套用函式（確保照片與影片色彩 100% 一致）
-function applyCanvasFilter(ctx) {
-  if (currentFilter === 'bw') {
-    ctx.filter = 'grayscale(100%) contrast(110%)';
-  } else if (currentFilter === 'vintage') {
-    ctx.filter = 'sepia(25%) contrast(95%) brightness(105%)';
-  } else if (currentFilter === 'vivid') {
-    ctx.filter = 'saturate(135%) contrast(105%)';
+function applyCSSFilter(element, filterType) {
+  if (filterType === 'bw') {
+    element.style.filter = 'grayscale(100%) contrast(110%)';
+  } else if (filterType === 'vintage') {
+    element.style.filter = 'sepia(25%) contrast(95%) brightness(105%)';
+  } else if (filterType === 'vivid') {
+    element.style.filter = 'saturate(135%) contrast(105%)';
   } else {
-    ctx.filter = 'none';
+    element.style.filter = 'none';
   }
 }
 
-// 5. 拍攝與動態相框側錄
+// 🎯 高相容性像素級濾鏡算法（保證 100% 寫入成品與影片中）
+function applyPixelFilter(ctx, width, height, filterType) {
+  if (filterType === 'none') return;
+
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const data = imgData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+    if (filterType === 'bw') {
+      let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+      avg = (avg - 128) * 1.1 + 128;
+      avg = Math.min(255, Math.max(0, avg));
+      data[i] = data[i + 1] = data[i + 2] = avg;
+    } else if (filterType === 'vintage') {
+      data[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+      data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+      data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+    } else if (filterType === 'vivid') {
+      data[i]     = Math.min(255, r * 1.25);
+      data[i + 1] = Math.min(255, g * 1.1);
+      data[i + 2] = Math.min(255, b * 0.95);
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// 4. 拍攝與動態相框側錄
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -175,7 +207,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 🎯 核心渲染：嚴格對齊照片裁切比例與位置，並同步套用濾鏡
+// 🎯 核心渲染：精確對齊成像並套用像素濾鏡
 function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanvas, isLiveVideo, activeFacing) {
   const vWidth = sourceVideoOrCanvas.videoWidth || sourceVideoOrCanvas.width || 640;
   const vHeight = sourceVideoOrCanvas.videoHeight || sourceVideoOrCanvas.height || 480;
@@ -196,8 +228,6 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
   }
 
   ctx.save();
-  applyCanvasFilter(ctx);
-
   if (isLiveVideo && activeFacing === 'user') {
     ctx.translate(targetWidth, 0);
     ctx.scale(-1, 1);
@@ -205,9 +235,12 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
 
   ctx.drawImage(sourceVideoOrCanvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
   ctx.restore();
+
+  // 執行像素級濾鏡渲染
+  applyPixelFilter(ctx, targetWidth, targetHeight, currentFilter);
 }
 
-// 🎯 即時繪製「相框 + 濾鏡 + 影音畫面」至錄影畫布
+// 🎯 即時繪製「相框 + 像素濾鏡畫面」至錄影畫布
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -231,7 +264,6 @@ function renderFullStripToCanvas(currentActiveIndex) {
     }
   });
 
-  recordCtx.filter = 'none';
   if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
     recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
   }
@@ -330,7 +362,6 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 單張照片拍攝（嚴格套用與預覽相同的濾鏡與成像公式）
 function takePhoto(canvas) {
   const targetWidth = 510;
   const targetHeight = 352;
