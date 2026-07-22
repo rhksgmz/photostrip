@@ -391,6 +391,12 @@
       cursor: pointer;
     }
 
+    /* 標準韓系濾鏡樣式類別定義 */
+    .filter-none { filter: none; }
+    .filter-bw { filter: grayscale(100%) contrast(110%); }
+    .filter-vintage { filter: sepia(25%) contrast(95%) brightness(105%); }
+    .filter-vivid { filter: saturate(135%) contrast(105%); }
+
     /* 隱藏的音訊與後台錄影 Canvas */
     #youtube-player-container, #hidden-recorder-container {
       position: absolute;
@@ -443,7 +449,7 @@
       <!-- 左側：控制面板區 -->
       <div class="controls-panel">
         <div class="camera-container">
-          <video id="webcam" autoplay playsinline muted></video>
+          <video id="webcam" class="filter-none" autoplay playsinline muted></video>
           <div id="flash-effect"></div>
           <div id="countdown-overlay"></div>
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>

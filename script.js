@@ -29,7 +29,7 @@ let recordedVideoBlob = null;
 let currentFilter = 'none';
 let recordAnimationId = null;
 
-// 精確的照片與相框繪製參數
+// 精確的影片框中照片座標位置
 const PHOTO_POSITIONS = [
   { left: 18, top: 32, width: 204, height: 141 },
   { left: 18, top: 178.8, width: 204, height: 141 },
@@ -113,11 +113,6 @@ function initCamera() {
   })
   .then(stream => { 
     webcam.srcObject = stream;
-    if (currentFacingMode === 'user') {
-      webcam.style.transform = 'scaleX(-1)';
-    } else {
-      webcam.style.transform = 'scaleX(1)';
-    }
   })
   .catch(err => {
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -133,55 +128,13 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 3. 濾鏡處理
+// 3. 濾鏡切換（即時預覽套用標準 CSS）
 filterSelect.addEventListener('change', (e) => {
   currentFilter = e.target.value;
-  applyCSSFilter(webcam, currentFilter);
+  webcam.className = `filter-${currentFilter}`;
 });
 
-function applyCSSFilter(element, filterType) {
-  if (filterType === 'bw') {
-    element.style.filter = 'grayscale(100%) contrast(115%)';
-  } else if (filterType === 'vintage') {
-    element.style.filter = 'sepia(35%) contrast(95%) brightness(105%)';
-  } else if (filterType === 'vivid') {
-    element.style.filter = 'saturate(150%) contrast(110%)';
-  } else {
-    element.style.filter = 'none';
-  }
-}
-
-function applyPixelFilter(ctx, width, height, filterType) {
-  if (filterType === 'none') return;
-
-  const imgData = ctx.getImageData(0, 0, width, height);
-  const data = imgData.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i];
-    let g = data[i + 1];
-    let b = data[i + 2];
-
-    if (filterType === 'bw') {
-      let avg = 0.299 * r + 0.587 * g + 0.114 * b;
-      avg = (avg - 128) * 1.15 + 128;
-      avg = Math.min(255, Math.max(0, avg));
-      data[i] = data[i + 1] = data[i + 2] = avg;
-    } else if (filterType === 'vintage') {
-      data[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-      data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-      data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-    } else if (filterType === 'vivid') {
-      data[i]     = Math.min(255, r * 1.2);
-      data[i + 1] = Math.min(255, g * 1.1);
-      data[i + 2] = Math.min(255, b * 0.9);
-    }
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-}
-
-// 4. 拍攝與動畫相框側錄
+// 4. 拍攝與動態相框側錄
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -210,14 +163,24 @@ frameOptions.forEach(option => {
   });
 });
 
-// 🎯 即時繪製「相框 + 已拍照片 + 即時鏡頭」至錄影畫布
+// 🎯 同步將濾鏡、相框與即時畫面渲染到錄影畫布中
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
+
+  // 設定 Canvas 錄影時的標準濾鏡對應
+  if (currentFilter === 'bw') {
+    recordCtx.filter = 'grayscale(100%) contrast(110%)';
+  } else if (currentFilter === 'vintage') {
+    recordCtx.filter = 'sepia(25%) contrast(95%) brightness(105%)';
+  } else if (currentFilter === 'vivid') {
+    recordCtx.filter = 'saturate(135%) contrast(105%)';
+  } else {
+    recordCtx.filter = 'none';
+  }
 
   PHOTO_POSITIONS.forEach((pos, idx) => {
     recordCtx.save();
     
-    // 如果是正在拍的那一格，渲染即時鏡頭畫面
     if (idx === currentActiveIndex) {
       if (currentFacingMode === 'user') {
         recordCtx.translate(pos.left + pos.width, pos.top);
@@ -227,13 +190,13 @@ function renderFullStripToCanvas(currentActiveIndex) {
         recordCtx.drawImage(webcam, pos.left, pos.top, pos.width, pos.height);
       }
     } else if (idx < currentActiveIndex) {
-      // 已拍攝好的照片
       recordCtx.drawImage(canvases[idx], pos.left, pos.top, pos.width, pos.height);
     }
     recordCtx.restore();
   });
 
-  // 最上層蓋上專屬相框圖案
+  // 加上相框前必須先清除濾鏡影響，讓相框色彩保持原汁原味
+  recordCtx.filter = 'none';
   if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
     recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
   }
@@ -248,10 +211,8 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  // 清空以往畫布
   canvases.forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
 
-  // 開啟錄影 Stream (擷取 30 FPS 的相框動態畫布)
   if (videoRecordCanvas.captureStream && window.MediaRecorder) {
     try {
       const recordStream = videoRecordCanvas.captureStream(30);
@@ -275,7 +236,6 @@ async function startPhotography() {
   }
 
   for (let i = 0; i < 4; i++) {
-    // 拍攝期間動態更新合成畫布
     const updateFrameLoop = () => {
       renderFullStripToCanvas(i);
       recordAnimationId = requestAnimationFrame(updateFrameLoop);
@@ -288,11 +248,9 @@ async function startPhotography() {
     triggerFlash();
     takePhoto(canvases[i]);
     
-    // 拍完當下瞬間渲染一次靜態照片
     renderFullStripToCanvas(i + 1);
   }
 
-  // 拍照完成後，錄影多延續 2 秒展示完整拍貼作品
   await new Promise(r => setTimeout(r, 2000));
 
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -364,6 +322,17 @@ function takePhoto(canvas) {
 
   ctx.save();
 
+  // 套用與即時預覽一致的標準 Canvas 濾鏡
+  if (currentFilter === 'bw') {
+    ctx.filter = 'grayscale(100%) contrast(110%)';
+  } else if (currentFilter === 'vintage') {
+    ctx.filter = 'sepia(25%) contrast(95%) brightness(105%)';
+  } else if (currentFilter === 'vivid') {
+    ctx.filter = 'saturate(135%) contrast(105%)';
+  } else {
+    ctx.filter = 'none';
+  }
+
   if (currentFacingMode === 'user') {
     ctx.translate(targetWidth, 0);
     ctx.scale(-1, 1);
@@ -371,8 +340,6 @@ function takePhoto(canvas) {
 
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
   ctx.restore();
-
-  applyPixelFilter(ctx, targetWidth, targetHeight, currentFilter);
 }
 
 function generateFinalImage() {
