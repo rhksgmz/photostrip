@@ -1,5 +1,5 @@
 /* =========================================================
-   3. 拍貼框圖層 (對齊真實相框：孔洞圓角 + 精確 Y 軸定位)
+   3. 拍貼框圖層 (照片間距減半 + 整體往上 0.3 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -18,7 +18,7 @@
   z-index: 1;
 }
 
-/* 🎯 精確對齊照片：寬 200px / 高 133px，帶有弧形圓角 */
+/* 照片尺寸維持 200px * 133px，搭配相框圓角 */
 .photo-frame {
   position: absolute;
   left: 20px;
@@ -26,7 +26,7 @@
   height: 133px;
   background-color: #000;
   overflow: hidden;
-  border-radius: 12px; /* 精確匹配 PNG 框的圓角弧度 */
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,26 +39,26 @@
 }
 
 /* ---------------------------------------------------------
-   🎯 依據你的 EXhOrizon 框實測的精確 Y 軸座標
+   🎯 微調後的精密 Y 軸座標 (間距為 5px，整體向上拉升 10px)
    --------------------------------------------------------- */
-/* 第 1 張照片：避開頂部 EXO-L 文字 */
+/* 第 1 張照片：原 36px 往上移 0.3 公分 ➔ 26px */
 .photo-frame:nth-child(1) {
-  top: 36px;
+  top: 26px;
 }
 
-/* 第 2 張照片：皇冠下緣 */
+/* 第 2 張照片：26 + 133 + 5 = 164px */
 .photo-frame:nth-child(2) {
-  top: 180px;
+  top: 164px;
 }
 
-/* 第 3 張照片 */
+/* 第 3 張照片：164 + 133 + 5 = 302px */
 .photo-frame:nth-child(3) {
-  top: 324px;
+  top: 302px;
 }
 
-/* 第 4 張照片：蝴蝶上緣 (底部位於 601px，完美露出底下地球與 EXhOrizon 高雄字樣) */
+/* 第 4 張照片：302 + 133 + 5 = 440px */
 .photo-frame:nth-child(4) {
-  top: 468px;
+  top: 440px;
 }
 
 #frame-overlay {
