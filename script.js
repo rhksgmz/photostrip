@@ -84,11 +84,11 @@ function countdown(seconds) {
   });
 }
 
-// 拍攝 500 * 345 像素照片
+// 🎯 拍攝 510 * 352 像素照片（1.02 倍畫布解析度）
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
-  const targetWidth = 500;
-  const targetHeight = 345;
+  const targetWidth = 510;
+  const targetHeight = 352;
   canvas.width = targetWidth;
   canvas.height = targetHeight;
 
