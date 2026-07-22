@@ -1,230 +1,5 @@
 /* =========================================================
-   1. 重置與 100% 穩定星空背景
-   ========================================================= */
-*, *::before, *::after {
-  box-sizing: border-box !important;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #090a0f;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  background-repeat: repeat, repeat, repeat, repeat, no-repeat;
-  background-size: 300px 300px, 300px 300px, 300px 300px, 300px 300px, 100% 100%;
-  color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 15px;
-  position: relative;
-  overflow-x: hidden;
-  font-family: Arial, sans-serif;
-}
-
-/* 主容器 */
-.container {
-  position: relative;
-  z-index: 1;
-  background: rgba(23, 25, 38, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 720px;
-  width: 100%;
-}
-
-/* 🎯 網格雙欄佈局 (徹底防止格式擠壓跑版) */
-.main-layout {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 20px;
-  align-items: start;
-  width: 100%;
-}
-
-h1.exo-title {
-  width: 100%;
-  text-align: center;
-  font-family: 'Orbitron', Impact, sans-serif !important;
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: 2px;
-  margin-bottom: 15px;
-  color: #ffffff;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
-              0 0 20px rgba(99, 102, 241, 0.9),
-              0 0 30px rgba(56, 189, 248, 0.5);
-}
-
-.controls-panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.preview-panel {
-  width: 240px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* =========================================================
-   2. 相機與藍色霓虹發光按鈕
-   ========================================================= */
-.camera-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-#webcam {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-  transition: filter 0.3s ease;
-}
-
-#countdown-overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 80px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 20px rgba(0,0,0,0.8);
-}
-
-.buttons {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.btn {
-  flex: 1;
-  padding: 12px 10px;
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  color: #ffffff;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
-  transition: all 0.2s ease;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
-}
-
-.btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  box-shadow: none;
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.btn.secondary {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border-color: rgba(56, 189, 248, 0.3);
-  color: #93c5fd;
-}
-
-.btn.success {
-  margin-top: 12px;
-  width: 100%;
-  font-size: 14px;
-  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-  border-color: #7dd3fc;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
-}
-
-.picker-group {
-  margin-top: 12px;
-  width: 100%;
-}
-
-.picker-group label {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.options-row {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-
-.filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #0f172a;
-  border: 1px solid #1e3a8a;
-  color: #93c5fd;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.filter-btn.active {
-  border-color: #38bdf8;
-  background: #1e3a8a;
-  color: #ffffff;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
-}
-
-.frame-option {
-  flex: 1;
-  height: 50px;
-  background: #0f172a;
-  border: 2px solid #1e3a8a;
-  border-radius: 8px;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.frame-option.active {
-  border-color: #38bdf8;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
-}
-
-.frame-option img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* =========================================================
-   3. 拍貼框圖層 (照片放大至 140px，徹底填滿下方留白)
+   3. 拍貼框圖層 (四張照片整體往下 0.5 公分)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -243,7 +18,7 @@ h1.exo-title {
   z-index: 1;
 }
 
-/* 🎯 照片放大：高度由 133px 加大至 140px */
+/* 照片寬度 200px / 高度 140px，搭配相框孔洞圓角 */
 .photo-frame {
   position: absolute;
   left: 20px;
@@ -263,11 +38,20 @@ h1.exo-title {
   object-fit: cover !important;
 }
 
-/* 🎯 精密推算座標：第一張 top: 24px，間距 4px (完全蓋過下緣洞口) */
-.photo-frame:nth-child(1) { top: 24px; }
-.photo-frame:nth-child(2) { top: 168px; } /* 24 + 140 + 4 */
-.photo-frame:nth-child(3) { top: 312px; } /* 168 + 140 + 4 */
-.photo-frame:nth-child(4) { top: 456px; } /* 312 + 140 + 4 */
+/* ---------------------------------------------------------
+   🎯 微調 Y 軸座標 (整體往下移動 0.5cm / +18px)
+   --------------------------------------------------------- */
+/* 第 1 張照片：從 24px 往下移至 42px */
+.photo-frame:nth-child(1) { top: 42px; }
+
+/* 第 2 張照片：42 + 140 + 4 = 186px */
+.photo-frame:nth-child(2) { top: 186px; }
+
+/* 第 3 張照片：186 + 140 + 4 = 330px */
+.photo-frame:nth-child(3) { top: 330px; }
+
+/* 第 4 張照片：330 + 140 + 4 = 474px */
+.photo-frame:nth-child(4) { top: 474px; }
 
 #frame-overlay {
   position: absolute;
@@ -285,18 +69,4 @@ h1.exo-title {
   z-index: 10;
   object-fit: fill;
   cursor: pointer;
-}
-
-/* 📱 手機螢幕自動改為單欄適配 */
-@media (max-width: 600px) {
-  .main-layout {
-    grid-template-columns: 1fr;
-    justify-items: center;
-  }
-  .container { padding: 12px; }
-  .controls-panel { max-width: 100%; }
-  #photo-strip {
-    transform: scale(0.92);
-    transform-origin: top center;
-  }
 }
