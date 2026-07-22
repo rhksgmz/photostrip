@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       positions: [
         { left: 15, top: 17, width: 210, height: 183 },   // 第一格
         { left: 15, top: 212, width: 210, height: 183 },  // 第二格 (間隔 0.35cm = 13px)
-        { left: 15, top: 400, width: 210, height: 183 }   // 第三格 (間隔 0.35cm = 13px)
+        { left: 15, top: 396, width: 210, height: 183 }   // 第三格 (間隔 0.35cm = 13px)
       ]
     }
   };
