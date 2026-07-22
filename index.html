@@ -220,7 +220,7 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框座標 (精確放大 1.02 倍：寬 204px / 高 141px) */
+    /* 🎯 拍貼框座標 (往下 0.05cm + 間距縮小 0.02cm 微調) */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -257,10 +257,11 @@
       object-fit: cover !important;
     }
 
-    .photo-frame:nth-child(1) { top: 29px; }
-    .photo-frame:nth-child(2) { top: 177px; }
-    .photo-frame:nth-child(3) { top: 325px; }
-    .photo-frame:nth-child(4) { top: 473px; }
+    /* 🎯 精密換算後的 Y 軸座標 */
+    .photo-frame:nth-child(1) { top: 30.5px; }
+    .photo-frame:nth-child(2) { top: 177.9px; }
+    .photo-frame:nth-child(3) { top: 325.3px; }
+    .photo-frame:nth-child(4) { top: 472.7px; }
 
     #frame-overlay {
       position: absolute;
