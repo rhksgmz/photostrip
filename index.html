@@ -17,7 +17,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 
-  <!-- 🎯 載入 Firebase 官方 SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -58,7 +57,7 @@
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-      width: 680px;
+      width: 720px;
       max-width: 95vw;
     }
 
@@ -119,7 +118,6 @@
                   0 0 30px rgba(56, 189, 248, 0.5);
     }
 
-    /* 📊 統計面板樣式 */
     .stats-panel {
       display: flex;
       justify-content: space-around;
@@ -281,26 +279,26 @@
     }
 
     .picker-group {
-      margin-top: 12px;
+      margin-top: 10px;
       width: 100%;
     }
 
     .picker-group label {
       font-size: 12px;
       color: #94a3b8;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       display: block;
     }
 
     .options-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
       width: 100%;
     }
 
     .frame-option {
-      flex: 1;
-      height: 50px;
+      height: 48px;
       background: #0f172a;
       border: 2px solid #1e3a8a;
       border-radius: 8px;
@@ -355,6 +353,7 @@
       object-fit: cover !important;
     }
 
+    /* 原本四格預設位置 */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -444,7 +443,6 @@
 
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
 
-    <!-- 📊 統計面板 -->
     <div class="stats-panel">
       <span>🟢 在線人數：<span id="online-count">1</span> 人</span>
       <span>📸 累積拍攝次數：<span id="total-shots">0</span> 次</span>
@@ -459,14 +457,21 @@
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>
         </div>
 
-        <div class="picker-group" style="margin-top: 5px;">
-          <label>🖼️ 1. 請先選擇專屬相框：</label>
+        <!-- 🖼️ 4個相框選項：2個四格、2個三格 (.png 檔) -->
+        <div class="picker-group">
+          <label>🖼️ 1. 請選擇專屬相框：</label>
           <div class="options-row">
-            <div class="frame-option active" data-frame="warm">
-              <img src="frame_warm.png" alt="暖色手繪框">
+            <div class="frame-option active" data-frame="frame_warm" data-slots="4">
+              <img src="frame_warm.png" alt="暖色四格">
             </div>
-            <div class="frame-option" data-frame="cool">
-              <img src="frame_cool.png" alt="銀河藍色框">
+            <div class="frame-option" data-frame="frame_cool" data-slots="4">
+              <img src="frame_cool.png" alt="藍色四格">
+            </div>
+            <div class="frame-option" data-frame="frame_pink_3" data-slots="3">
+              <img src="frame_pink_3.png" alt="粉色三格">
+            </div>
+            <div class="frame-option" data-frame="frame_blue_3" data-slots="3">
+              <img src="frame_blue_3.png" alt="藍色三格">
             </div>
           </div>
         </div>

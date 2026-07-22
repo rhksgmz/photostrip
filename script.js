@@ -2,12 +2,11 @@
 // 🔴 Firebase 即時數據同步設定
 // ==========================================
 const firebaseConfig = {
-  databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/" // 使用公開測試通道
+  databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 在線人數即時同步
 const onlineCountEl = document.getElementById('online-count');
 const myConnectionRef = db.ref('presence').push();
 myConnectionRef.onDisconnect().remove();
@@ -20,14 +19,13 @@ db.ref('presence').on('value', (snapshot) => {
   }
 });
 
-// 累積拍攝次數即時同步
 const totalShotsEl = document.getElementById('total-shots');
 db.ref('stats/totalShots').on('value', (snapshot) => {
   const val = snapshot.val();
   if (val !== null && totalShotsEl) {
     totalShotsEl.innerText = val;
   } else if (totalShotsEl) {
-    db.ref('stats/totalShots').set(128); // 初始值
+    db.ref('stats/totalShots').set(128);
   }
 });
 
@@ -45,6 +43,7 @@ const flashEffect = document.getElementById('flash-effect');
 const flipBtn = document.getElementById('flip-btn');
 
 const photoStrip = document.getElementById('photo-strip');
+const photoLayer = document.querySelector('.photo-layer');
 const frameOverlay = document.getElementById('frame-overlay');
 const finalResultImg = document.getElementById('final-result-img');
 const frameOptions = document.querySelectorAll('.frame-option');
@@ -65,11 +64,32 @@ let recordedVideoBlob = null;
 let audioCtx = null;
 let isRecordingActive = false;
 
-const PHOTO_POSITIONS = [
-  { left: 18, top: 32, width: 204, height: 141 },
-  { left: 18, top: 178.8, width: 204, height: 141 },
-  { left: 18, top: 325.6, width: 204, height: 141 },
-  { left: 18, top: 472.4, width: 204, height: 141 }
+// 🎯 原本四格位置完全不動，並精準對應三格 PNG 相框的挖孔座標
+const FRAME_CONFIGS = {
+  4: {
+    positions: [
+      { left: 18, top: 32, width: 204, height: 141 },
+      { left: 18, top: 178.8, width: 204, height: 141 },
+      { left: 18, top: 325.6, width: 204, height: 141 },
+      { left: 18, top: 472.4, width: 204, height: 141 }
+    ]
+  },
+  3: {
+    positions: [
+      { left: 24, top: 38, width: 192, height: 155 },   // 對應圖 A & B 第一格
+      { left: 24, top: 228, width: 192, height: 165 },  // 對應圖 A & B 第二格
+      { left: 24, top: 432, width: 192, height: 185 }   // 對應圖 A & B 第三格
+    ]
+  }
+};
+
+let currentSlots = 4;
+let PHOTO_POSITIONS = FRAME_CONFIGS[4].positions;
+let canvases = [
+  document.getElementById('canvas1'),
+  document.getElementById('canvas2'),
+  document.getElementById('canvas3'),
+  document.getElementById('canvas4')
 ];
 
 // 1. YouTube BGM
@@ -192,19 +212,7 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 4. 拍攝與錄影設定
-const canvases = [
-  document.getElementById('canvas1'),
-  document.getElementById('canvas2'),
-  document.getElementById('canvas3'),
-  document.getElementById('canvas4')
-];
-
-const frameSources = {
-  warm: 'frame_warm.png',
-  cool: 'frame_cool.png'
-};
-
+// 🎯 相框點擊切換事件：自動辨識並切換 3 格或 4 格
 let hasShot = false;
 
 frameOptions.forEach(option => {
@@ -214,7 +222,25 @@ frameOptions.forEach(option => {
     e.currentTarget.classList.add('active');
 
     const selectedFrame = e.currentTarget.getAttribute('data-frame');
-    frameOverlay.src = frameSources[selectedFrame];
+    const slots = parseInt(e.currentTarget.getAttribute('data-slots')) || 4;
+
+    currentSlots = slots;
+    PHOTO_POSITIONS = FRAME_CONFIGS[slots].positions;
+
+    // 動態重繪 DOM 中的 Canvas 數量與座標
+    photoLayer.innerHTML = '';
+    for (let i = 0; i < slots; i++) {
+      const pos = PHOTO_POSITIONS[i];
+      photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px;"><canvas id="canvas${i + 1}"></canvas></div>`;
+    }
+
+    canvases = [];
+    for (let i = 1; i <= slots; i++) {
+      canvases.push(document.getElementById(`canvas${i}`));
+    }
+
+    startBtn.innerText = `2. 開始連拍 (${slots}張)`;
+    frameOverlay.src = `${selectedFrame}.png`;
   });
 });
 
@@ -248,10 +274,8 @@ function renderFrameToContext(ctx, targetWidth, targetHeight, sourceVideoOrCanva
 }
 
 function takePhoto(canvas) {
-  const targetWidth = 510;
-  const targetHeight = 352;
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
+  const targetWidth = canvas.width || 510;
+  const targetHeight = canvas.height || 352;
   const ctx = canvas.getContext('2d');
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
@@ -269,8 +293,8 @@ function renderAllActiveFrames(currentActiveIndex) {
     }
     recordCtx.clip();
 
-    const sourceToDraw = (idx < currentActiveIndex && canvases[idx].width > 0) ? canvases[idx] : webcam;
-    const isLive = !(idx < currentActiveIndex && canvases[idx].width > 0);
+    const sourceToDraw = (idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0) ? canvases[idx] : webcam;
+    const isLive = !(idx < currentActiveIndex && canvases[idx] && canvases[idx].width > 0);
 
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = pos.width;
@@ -346,7 +370,11 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  canvases.forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
+  canvases.forEach(c => {
+    c.width = PHOTO_POSITIONS[canvases.indexOf(c)].width * 2;
+    c.height = PHOTO_POSITIONS[canvases.indexOf(c)].height * 2;
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
 
   if (videoRecordCanvas.captureStream && window.MediaRecorder) {
     try {
@@ -369,7 +397,7 @@ async function startPhotography() {
     }
   }
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < currentSlots; i++) {
     startRecordingLoop(i);
     await run5SecCountdown(5); // 每格 5 秒
     
@@ -394,7 +422,6 @@ async function startPhotography() {
   hasShot = true;
   generateFinalImage();
 
-  // 📸 雲端拍攝次數 +1
   db.ref('stats/totalShots').transaction((current) => {
     return (current || 128) + 1;
   });
