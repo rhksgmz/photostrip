@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已放大 1.015 倍並縮短間隔 0.5 公分）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已放大 1.25 倍並極致縮短間隔）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 28, top: 35, width: 183, height: 167 },  // 頂部熊頭框
-        { left: 34, top: 208, width: 173, height: 152 }, // 中間圓形框
-        { left: 24, top: 381, width: 193, height: 173 }  // 底部造型框
+        { left: 6, top: 25, width: 228, height: 215 },   // 頂部熊頭框
+        { left: 10, top: 245, width: 220, height: 220 }, // 中間圓形框
+        { left: 5, top: 470, width: 230, height: 225 }   // 底部造型框
       ]
     }
   };
@@ -180,6 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initCamera();
 
+  // 🎯 初始化時建立 4 格預設 DOM，確保不遺失
+  function rebuildPhotoLayer(slots) {
+    photoLayer.innerHTML = '';
+    for (let i = 0; i < slots; i++) {
+      const pos = PHOTO_POSITIONS[i];
+      photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px; display: flex;"><canvas id="canvas${i + 1}"></canvas></div>`;
+    }
+    canvases = [];
+    for (let i = 1; i <= slots; i++) {
+      canvases.push(document.getElementById(`canvas${i}`));
+    }
+  }
+
   // 🎯 相框切換事件
   let hasShot = false;
 
@@ -199,16 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentSlots = slots;
       PHOTO_POSITIONS = FRAME_CONFIGS[slots].positions;
 
-      photoLayer.innerHTML = '';
-      for (let i = 0; i < slots; i++) {
-        const pos = PHOTO_POSITIONS[i];
-        photoLayer.innerHTML += `<div class="photo-frame" style="top: ${pos.top}px; left: ${pos.left}px; width: ${pos.width}px; height: ${pos.height}px; display: flex;"><canvas id="canvas${i + 1}"></canvas></div>`;
-      }
-
-      canvases = [];
-      for (let i = 1; i <= slots; i++) {
-        canvases.push(document.getElementById(`canvas${i}`));
-      }
+      rebuildPhotoLayer(slots);
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
@@ -310,6 +314,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function startPhotography() {
+    // 🎯 拍攝時自動播放音樂
+    if (player && typeof player.playVideo === 'function' && !isPlaying) {
+      if (typeof player.nextVideo === 'function') {
+        player.nextVideo();
+      }
+      player.playVideo();
+      musicBtn.classList.add('playing');
+      musicIcon.innerText = '🔊';
+      musicText.innerText = 'PLAYING';
+      isPlaying = true;
+    }
+
     startBtn.disabled = true;
     retakeBtn.disabled = true;
     downloadBtn.disabled = true;
@@ -325,6 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return (current || 128) + 1;
       });
     } catch (e) {}
+
+    // 確保當前格數 DOM 完整
+    rebuildPhotoLayer(currentSlots);
 
     canvases.forEach((c, idx) => {
       if (c && PHOTO_POSITIONS[idx]) {
