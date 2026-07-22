@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已縮小 0.85 倍並整體往上移約 1 公分 / 38px）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已針對特殊造型挖孔完美適配）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -67,9 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 21, top: 0, width: 197, height: 187 },
-        { left: 21, top: 199, width: 197, height: 196 },
-        { left: 21, top: 399, width: 197, height: 191 }
+        { left: 30, top: 35, width: 180, height: 165 },  // 頂部熊頭框
+        { left: 35, top: 225, width: 170, height: 150 }, // 中間圓形框
+        { left: 25, top: 415, width: 190, height: 170 }  // 底部造型框
       ]
     }
   };
