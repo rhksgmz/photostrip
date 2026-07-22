@@ -232,7 +232,7 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 讓四個格子在錄影過程中「同時都能動」的即時渲染核心
+// 🎯 渲染側錄畫面：每一格在 10 秒內都各自呈現即時動態
 function renderAllActiveFrames(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -246,7 +246,7 @@ function renderAllActiveFrames(currentActiveIndex) {
     }
     recordCtx.clip();
 
-    // 如果這一格已經拍完了，就固定顯示該格拍好的畫面；如果還在拍或輪到這一格，就讓它持續顯示即時相機畫面（會跟著動）
+    // 如果該格已經拍完，就顯示定格照片；如果正在拍這 10 秒，就顯示動態鏡頭
     const sourceToDraw = (idx < currentActiveIndex && canvases[idx].width > 0) ? canvases[idx] : webcam;
     const isLive = !(idx < currentActiveIndex && canvases[idx].width > 0);
 
@@ -271,8 +271,8 @@ function startRecordingLoop(currentActiveIndex) {
   requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
 }
 
-// 🎯 強制手機顯示 321 倒數的計時器
-function runMobileCountdown(seconds) {
+// 🎯 10 秒專屬倒數計時器
+function run10SecCountdown(seconds) {
   return new Promise(resolve => {
     let count = seconds;
     countdownOverlay.innerText = count;
@@ -334,15 +334,15 @@ async function startPhotography() {
     }
   }
 
-  // 4張連拍循環，每一張倒數時所有格子都會跟著鏡頭即時變動
+  // 4 張照片，每張拍攝/倒數時間為 10 秒
   for (let i = 0; i < 4; i++) {
     startRecordingLoop(i);
 
-    await runMobileCountdown(3);
+    await run10SecCountdown(10); // 每一格 10 秒倒數
     
     isRecordingActive = false;
     triggerFlash();
-    takePhoto(canvases[i]); // 拍完後將該格定格存入 canvases[i]
+    takePhoto(canvases[i]); // 10秒結束瞬間拍照定格
     
     isRecordingActive = true;
   }
