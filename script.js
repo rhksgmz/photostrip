@@ -128,7 +128,7 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 3. 濾鏡切換（即時預覽套用標準 CSS）
+// 3. 濾鏡切換
 filterSelect.addEventListener('change', (e) => {
   currentFilter = e.target.value;
   webcam.className = `filter-${currentFilter}`;
@@ -163,11 +163,11 @@ frameOptions.forEach(option => {
   });
 });
 
-// 🎯 同步將濾鏡、相框與即時畫面渲染到錄影畫布中
+// 🎯 同步將濾鏡、相框與即時畫面渲染到錄影畫布中（解決畫面壓縮與濾鏡丟失）
 function renderFullStripToCanvas(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
-  // 設定 Canvas 錄影時的標準濾鏡對應
+  // 設定錄影畫布的濾鏡效果
   if (currentFilter === 'bw') {
     recordCtx.filter = 'grayscale(100%) contrast(110%)';
   } else if (currentFilter === 'vintage') {
@@ -178,16 +178,35 @@ function renderFullStripToCanvas(currentActiveIndex) {
     recordCtx.filter = 'none';
   }
 
+  const vWidth = webcam.videoWidth || 640;
+  const vHeight = webcam.videoHeight || 480;
+  const videoAspect = vWidth / vHeight;
+
   PHOTO_POSITIONS.forEach((pos, idx) => {
     recordCtx.save();
     
     if (idx === currentActiveIndex) {
+      const targetAspect = pos.width / pos.height;
+      let sWidth, sHeight, sx, sy;
+      
+      if (videoAspect > targetAspect) {
+        sHeight = vHeight;
+        sWidth = vHeight * targetAspect;
+        sx = (vWidth - sWidth) / 2;
+        sy = 0;
+      } else {
+        sWidth = vWidth;
+        sHeight = vWidth / targetAspect;
+        sx = 0;
+        sy = (vHeight - sHeight) / 2;
+      }
+
       if (currentFacingMode === 'user') {
         recordCtx.translate(pos.left + pos.width, pos.top);
         recordCtx.scale(-1, 1);
-        recordCtx.drawImage(webcam, 0, 0, pos.width, pos.height);
+        recordCtx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, pos.width, pos.height);
       } else {
-        recordCtx.drawImage(webcam, pos.left, pos.top, pos.width, pos.height);
+        recordCtx.drawImage(webcam, sx, sy, sWidth, sHeight, pos.left, pos.top, pos.width, pos.height);
       }
     } else if (idx < currentActiveIndex) {
       recordCtx.drawImage(canvases[idx], pos.left, pos.top, pos.width, pos.height);
@@ -195,7 +214,7 @@ function renderFullStripToCanvas(currentActiveIndex) {
     recordCtx.restore();
   });
 
-  // 加上相框前必須先清除濾鏡影響，讓相框色彩保持原汁原味
+  // 繪製相框
   recordCtx.filter = 'none';
   if (frameOverlay.complete && frameOverlay.naturalWidth !== 0) {
     recordCtx.drawImage(frameOverlay, 0, 0, 240, 720);
@@ -322,7 +341,6 @@ function takePhoto(canvas) {
 
   ctx.save();
 
-  // 套用與即時預覽一致的標準 Canvas 濾鏡
   if (currentFilter === 'bw') {
     ctx.filter = 'grayscale(100%) contrast(110%)';
   } else if (currentFilter === 'vintage') {
