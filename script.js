@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（4格維持原樣，3格調整為 1.12 倍適中大小與完美間距）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（4格維持原樣，3格縮小至 0.8 倍）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 14, top: 30, width: 212, height: 175 },   // 第一格 (適中熊頭框)
-        { left: 14, top: 215, width: 212, height: 175 },  // 第二格 (適中圓形框)
-        { left: 14, top: 400, width: 212, height: 185 }   // 第三格 (適中造型框)
+        { left: 35, top: 35, width: 170, height: 140 },   // 頂部熊頭框 (縮小至 0.8 倍)
+        { left: 35, top: 205, width: 170, height: 140 },  // 第二格圓形框 (縮小至 0.8 倍)
+        { left: 35, top: 375, width: 170, height: 148 }   // 第三格造型框 (縮小至 0.8 倍)
       ]
     }
   };
