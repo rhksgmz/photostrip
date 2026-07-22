@@ -19,12 +19,11 @@ const musicText = document.getElementById('music-text');
 
 let player;
 let isPlaying = false;
-let currentFacingMode = 'user'; // 'user' (前鏡頭) 或 'environment' (後鏡頭)
+let currentFacingMode = 'user'; 
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
 let currentFilter = 'none';
-let supportedMimeType = '';
 
 // 1. YouTube BGM API
 function onYouTubeIframeAPIReady() {
@@ -87,39 +86,33 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 2. 鏡頭初始化與切換
+// 2. 開啟與切換相機
 function initCamera() {
   if (webcam.srcObject) {
     webcam.srcObject.getTracks().forEach(track => track.stop());
   }
 
-  const constraints = {
+  navigator.mediaDevices.getUserMedia({ 
     video: { 
       width: { ideal: 1280 }, 
       height: { ideal: 960 }, 
-      facingMode: { exact: currentFacingMode } 
+      facingMode: currentFacingMode 
+    } 
+  })
+  .then(stream => { 
+    webcam.srcObject = stream;
+    if (currentFacingMode === 'user') {
+      webcam.style.transform = 'scaleX(-1)';
+    } else {
+      webcam.style.transform = 'scaleX(1)';
     }
-  };
-
-  navigator.mediaDevices.getUserMedia(constraints)
-    .then(stream => handleStreamSuccess(stream))
-    .catch(() => {
-      // 容錯機制：若不支援 exact 模式則退回普通模式
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } })
-        .then(stream => handleStreamSuccess(stream))
-        .catch(err => {
-          alert("無法切換鏡頭或開啟相機！可能是裝置無多餘鏡頭。");
-        });
-    });
-}
-
-function handleStreamSuccess(stream) {
-  webcam.srcObject = stream;
-  if (currentFacingMode === 'user') {
-    webcam.style.transform = 'scaleX(-1)';
-  } else {
-    webcam.style.transform = 'scaleX(1)';
-  }
+  })
+  .catch(err => {
+    // 若無法開啟特定鏡頭則退回預設相機
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { webcam.srcObject = stream; })
+      .catch(e => alert("無法開啟相機，請確認瀏覽器相機權限！"));
+  });
 }
 
 flipBtn.addEventListener('click', () => {
@@ -129,13 +122,13 @@ flipBtn.addEventListener('click', () => {
 
 initCamera();
 
-// 3. 切換濾鏡 (即時預覽)
+// 3. 即時預覽濾鏡切換
 filterSelect.addEventListener('change', (e) => {
   currentFilter = e.target.value;
-  applyFilterToElement(webcam, currentFilter);
+  applyCSSFilter(webcam, currentFilter);
 });
 
-function applyFilterToElement(element, filterType) {
+function applyCSSFilter(element, filterType) {
   if (filterType === 'bw') {
     element.style.filter = 'grayscale(100%) contrast(115%)';
   } else if (filterType === 'vintage') {
@@ -147,24 +140,41 @@ function applyFilterToElement(element, filterType) {
   }
 }
 
-// 4. 偵測瀏覽器支援的錄影格式
-function getSupportedMimeType() {
-  const types = [
-    'video/mp4',
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
-    'video/webm',
-    'video/mpeg'
-  ];
-  for (let type of types) {
-    if (MediaRecorder.isTypeSupported(type)) {
-      return type;
+// 4. 全平台相容的相片像素級濾鏡算法（解決不同裝置 Canvas 濾鏡失效問題）
+function applyPixelFilter(ctx, width, height, filterType) {
+  if (filterType === 'none') return;
+
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const data = imgData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+    if (filterType === 'bw') {
+      // 黑白高對比
+      let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+      avg = (avg - 128) * 1.15 + 128; // 對比提升
+      avg = Math.min(255, Math.max(0, avg));
+      data[i] = data[i + 1] = data[i + 2] = avg;
+    } else if (filterType === 'vintage') {
+      // 復古暖色調
+      data[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+      data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+      data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+    } else if (filterType === 'vivid') {
+      // 鮮豔奶油感
+      data[i]     = Math.min(255, r * 1.2);
+      data[i + 1] = Math.min(255, g * 1.1);
+      data[i + 2] = Math.min(255, b * 0.9);
     }
   }
-  return '';
+
+  ctx.putImageData(imgData, 0, 0);
 }
 
-// 5. 相框與拍攝流程
+// 5. 拍攝與錄影流程
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -202,18 +212,25 @@ async function startPhotography() {
   hasShot = false;
   recordedChunks = [];
 
-  // 開啟錄影 (支援 Safari / iOS 相容格式)
+  // 初始化 MediaRecorder 側錄影片（相容 iOS / Safari / Android）
   if (webcam.srcObject && window.MediaRecorder) {
-    supportedMimeType = getSupportedMimeType();
     try {
-      const options = supportedMimeType ? { mimeType: supportedMimeType } : {};
+      let options = {};
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        options = { mimeType: 'video/mp4' };
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+        options = { mimeType: 'video/webm;codecs=vp8' };
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        options = { mimeType: 'video/webm' };
+      }
+
       mediaRecorder = new MediaRecorder(webcam.srcObject, options);
       mediaRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) recordedChunks.push(e.data);
       };
-      mediaRecorder.start(100);
+      mediaRecorder.start(200);
     } catch (e) {
-      console.log("此瀏覽器限制影片錄製功能：", e);
+      console.log("裝置錄影初始化受限：", e);
     }
   }
 
@@ -223,12 +240,12 @@ async function startPhotography() {
     takePhoto(canvases[i]);
   }
 
-  // 停止錄影
+  // 結束錄影並打包影片
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
     mediaRecorder.onstop = () => {
-      const type = supportedMimeType || 'video/mp4';
-      recordedVideoBlob = new Blob(recordedChunks, { type: type });
+      const mime = mediaRecorder.mimeType || 'video/mp4';
+      recordedVideoBlob = new Blob(recordedChunks, { type: mime });
       downloadVideoBtn.disabled = false;
     };
   }
@@ -266,7 +283,6 @@ function countdown(seconds) {
   });
 }
 
-// 拍照並寫入 Canvas
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   const targetWidth = 510;
@@ -294,17 +310,6 @@ function takePhoto(canvas) {
 
   ctx.save();
 
-  // 強制套用 Canvas 濾鏡
-  if (currentFilter === 'bw') {
-    ctx.filter = 'grayscale(100%) contrast(115%)';
-  } else if (currentFilter === 'vintage') {
-    ctx.filter = 'sepia(35%) contrast(95%) brightness(105%)';
-  } else if (currentFilter === 'vivid') {
-    ctx.filter = 'saturate(150%) contrast(110%)';
-  } else {
-    ctx.filter = 'none';
-  }
-
   if (currentFacingMode === 'user') {
     ctx.translate(targetWidth, 0);
     ctx.scale(-1, 1);
@@ -312,6 +317,9 @@ function takePhoto(canvas) {
 
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
   ctx.restore();
+
+  // 套用像素級濾鏡，確保跨平台成功渲染
+  applyPixelFilter(ctx, targetWidth, targetHeight, currentFilter);
 }
 
 function generateFinalImage() {
@@ -350,7 +358,7 @@ downloadVideoBtn.addEventListener('click', () => {
   if (recordedVideoBlob) {
     const url = URL.createObjectURL(recordedVideoBlob);
     const a = document.createElement('a');
-    const ext = supportedMimeType.includes('mp4') ? 'mp4' : 'webm';
+    const ext = recordedVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
     a.href = url;
     a.download = `EXhOrizon_video_${Date.now()}.${ext}`;
     a.click();
