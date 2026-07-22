@@ -26,6 +26,7 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let recordedVideoBlob = null;
 let recordAnimationId = null;
+let audioCtx = null; // 手機音訊解鎖用
 
 // 精確的相框內 4 張照片成像位置
 const PHOTO_POSITIONS = [
@@ -84,7 +85,7 @@ function toggleMusic() {
 musicBtn.addEventListener('click', toggleMusic);
 
 document.body.addEventListener('click', () => {
-  if (!isPlaying && player && typeof player.playVideo === 'function') {
+  if (!isPlaying && player && typeof player.playVideo !== 'function') {
     if (typeof player.nextVideo === 'function') {
       player.nextVideo();
     }
@@ -96,11 +97,17 @@ document.body.addEventListener('click', () => {
   }
 }, { once: true });
 
-// 2. 模擬拍貼機印相運作機械聲音
+// 2. 解鎖並播放手機專屬印相機機械音效
 function playPrintingSound() {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const bufferSize = audioCtx.sampleRate * 1.6;
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    const bufferSize = audioCtx.sampleRate * 1.5;
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -117,22 +124,21 @@ function playPrintingSound() {
 
     const gainNode = audioCtx.createGain();
     gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.2);
-    gainNode.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 1.2);
-    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.6);
+    gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.2);
+    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
 
     noise.connect(filter);
     filter.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 
     noise.start();
-    noise.stop(audioCtx.currentTime + 1.6);
+    noise.stop(audioCtx.currentTime + 1.5);
   } catch (e) {
-    console.log("音效播放支援受限：", e);
+    console.log("音效未啟用：", e);
   }
 }
 
-// 3. 相機設定與翻轉
+// 3. 相機設定與翻轉 (針對手機適配)
 function initCamera() {
   if (webcam.srcObject) {
     webcam.srcObject.getTracks().forEach(track => track.stop());
@@ -151,7 +157,7 @@ function initCamera() {
   .catch(err => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => { webcam.srcObject = stream; })
-      .catch(e => alert("無法開啟相機，請確認瀏覽器權限！"));
+      .catch(e => alert("無法開啟相機，請確認手機相機權限已開啟！"));
   });
 }
 
@@ -246,6 +252,16 @@ function renderFullStripToCanvas(currentActiveIndex) {
 }
 
 async function startPhotography() {
+  // 點擊瞬間解鎖 AudioContext 權限（適用於手機 Safari/Chrome）
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  } catch (e) {}
+
   startBtn.disabled = true;
   retakeBtn.disabled = true;
   downloadBtn.disabled = true;
@@ -275,7 +291,7 @@ async function startPhotography() {
       };
       mediaRecorder.start(100);
     } catch (e) {
-      console.log("影音錄影初始化失敗：", e);
+      console.log("動態錄影不支援：", e);
     }
   }
 
@@ -295,7 +311,7 @@ async function startPhotography() {
     renderFullStripToCanvas(i + 1);
   }
 
-  await new Promise(r => setTimeout(r, 2000));
+  await new Promise(r => setTimeout(r, 1500));
 
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
@@ -351,18 +367,19 @@ function takePhoto(canvas) {
 
 function generateFinalImage() {
   html2canvas(photoStrip, { 
-    scale: 3, 
+    scale: 2, // 針對手機效能優化縮放倍率，避免 iOS 記憶體崩潰
     useCORS: true,
     backgroundColor: null
   }).then(canvas => {
     const dataUrl = canvas.toDataURL('image/png');
     finalResultImg.src = dataUrl;
     
-    // 顯示滑出顯影特效圖層
     finalResultImg.style.display = 'block';
-    
     playPrintingSound();
     finalResultImg.classList.add('printing-animation');
+  }).catch(err => {
+    console.log("截圖失敗：", err);
+    alert("手機生成圖片時發生錯誤，請重新整理後再試一次！");
   });
 }
 
