@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已再放大 1.5 倍）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已極大化放大並緊縮間距）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -67,9 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 6, top: 25, width: 228, height: 294 },
-        { left: 6, top: 327, width: 228, height: 312 },
-        { left: 6, top: 647, width: 228, height: 350 }
+        { left: 4, top: 20, width: 232, height: 220 },
+        { left: 4, top: 245, width: 232, height: 230 },
+        { left: 4, top: 480, width: 232, height: 225 }
       ]
     }
   };
