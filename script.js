@@ -28,6 +28,7 @@ let recordedVideoBlob = null;
 let audioCtx = null;
 let isRecordingActive = false;
 
+// 拍貼框內 4 張照片的精確位置
 const PHOTO_POSITIONS = [
   { left: 18, top: 32, width: 204, height: 141 },
   { left: 18, top: 178.8, width: 204, height: 141 },
@@ -232,7 +233,7 @@ function takePhoto(canvas) {
   renderFrameToContext(ctx, targetWidth, targetHeight, webcam, true, currentFacingMode);
 }
 
-// 🎯 渲染側錄畫面：每一格在 10 秒內都各自呈現即時動態
+// 🎯 讓四個格子在 10 秒拍攝期間「同時動態更新」的渲染核心
 function renderAllActiveFrames(currentActiveIndex) {
   recordCtx.clearRect(0, 0, 240, 720);
 
@@ -246,7 +247,7 @@ function renderAllActiveFrames(currentActiveIndex) {
     }
     recordCtx.clip();
 
-    // 如果該格已經拍完，就顯示定格照片；如果正在拍這 10 秒，就顯示動態鏡頭
+    // 如果該格已經拍完，就顯示定格照片；如果是正在拍攝的當前格子，則呈現即時動態畫面
     const sourceToDraw = (idx < currentActiveIndex && canvases[idx].width > 0) ? canvases[idx] : webcam;
     const isLive = !(idx < currentActiveIndex && canvases[idx].width > 0);
 
@@ -271,7 +272,7 @@ function startRecordingLoop(currentActiveIndex) {
   requestAnimationFrame(() => startRecordingLoop(currentActiveIndex));
 }
 
-// 🎯 10 秒專屬倒數計時器
+// 🎯 專門設定為 10 秒的倒數計時器
 function run10SecCountdown(seconds) {
   return new Promise(resolve => {
     let count = seconds;
@@ -338,7 +339,7 @@ async function startPhotography() {
   for (let i = 0; i < 4; i++) {
     startRecordingLoop(i);
 
-    await run10SecCountdown(10); // 每一格 10 秒倒數
+    await run10SecCountdown(10); // 每一格倒數 10 秒，對應 10 秒影片段落
     
     isRecordingActive = false;
     triggerFlash();
