@@ -9,6 +9,68 @@ const frameOverlay = document.getElementById('frame-overlay');
 const finalResultImg = document.getElementById('final-result-img');
 const frameOptions = document.querySelectorAll('.frame-option');
 
+const musicBtn = document.getElementById('music-btn');
+const musicIcon = document.getElementById('music-icon');
+const musicText = document.getElementById('music-text');
+
+let player;
+let isPlaying = false;
+
+// 1. 載入 YouTube 官方播放器 API
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('yt-player', {
+    height: '1',
+    width: '1',
+    playerVars: {
+      'listType': 'playlist',
+      'list': 'PLyJ3pmxrjrzgWkwG52oMsyT41vQcjCfks', // 你提供的 EXO 歌單 ID
+      'autoplay': 0,
+      'controls': 0,
+      'loop': 1
+    },
+    events: {
+      'onReady': onPlayerReady
+    }
+  });
+}
+
+function onPlayerReady(event) {
+  event.target.setVolume(40); // 預設音量 40%
+}
+
+// 2. 音樂按鈕點擊開關
+function toggleMusic() {
+  if (!player || typeof player.playVideo !== 'function') return;
+
+  if (isPlaying) {
+    player.pauseVideo();
+    musicBtn.classList.remove('playing');
+    musicIcon.innerText = '🔇';
+    musicText.innerText = 'PAUSED';
+    isPlaying = false;
+  } else {
+    player.playVideo();
+    musicBtn.classList.add('playing');
+    musicIcon.innerText = '🔊';
+    musicText.innerText = 'PLAYING';
+    isPlaying = true;
+  }
+}
+
+musicBtn.addEventListener('click', toggleMusic);
+
+// 點擊頁面任意處自動開始播放歌單
+document.body.addEventListener('click', () => {
+  if (!isPlaying && player && typeof player.playVideo === 'function') {
+    player.playVideo();
+    musicBtn.classList.add('playing');
+    musicIcon.innerText = '🔊';
+    musicText.innerText = 'PLAYING';
+    isPlaying = true;
+  }
+}, { once: true });
+
+// 3. 開啟相機
 const canvases = [
   document.getElementById('canvas1'),
   document.getElementById('canvas2'),
@@ -23,14 +85,13 @@ const frameSources = {
 
 let hasShot = false;
 
-// 1. 開啟相機
 navigator.mediaDevices.getUserMedia({ 
   video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: "user" } 
 })
 .then(stream => { webcam.srcObject = stream; })
 .catch(err => { alert("無法開啟相機，請確認授權權限！"); });
 
-// 2. 切換相框
+// 4. 切換相框
 frameOptions.forEach(option => {
   option.addEventListener('click', (e) => {
     document.querySelector('.frame-option.active').classList.remove('active');
@@ -45,7 +106,7 @@ frameOptions.forEach(option => {
   });
 });
 
-// 3. 開始拍攝流程
+// 5. 拍攝流程
 async function startPhotography() {
   startBtn.disabled = true;
   retakeBtn.disabled = true;
@@ -84,7 +145,6 @@ function countdown(seconds) {
   });
 }
 
-// 🎯 拍攝 510 * 352 像素照片（1.02 倍畫布解析度）
 function takePhoto(canvas) {
   const ctx = canvas.getContext('2d');
   const targetWidth = 510;
@@ -115,7 +175,6 @@ function takePhoto(canvas) {
   ctx.drawImage(webcam, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 }
 
-// 合成作品
 function generateFinalImage() {
   html2canvas(photoStrip, { 
     scale: 3, 
@@ -128,7 +187,6 @@ function generateFinalImage() {
   });
 }
 
-// 重拍
 retakeBtn.addEventListener('click', () => {
   canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
@@ -139,7 +197,6 @@ retakeBtn.addEventListener('click', () => {
   downloadBtn.disabled = true;
 });
 
-// 下載按鈕
 downloadBtn.addEventListener('click', () => {
   if (finalResultImg.src && hasShot) {
     const link = document.createElement('a');

@@ -57,6 +57,39 @@
       max-width: 95vw;
     }
 
+    /* 🎵 霓虹發光音樂開關按鈕 */
+    .music-toggle-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      color: #38bdf8;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 200;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .music-toggle-btn:hover {
+      background: rgba(30, 58, 138, 0.9);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.7);
+      transform: scale(1.05);
+    }
+
+    .music-toggle-btn.playing {
+      border-color: #4ade80;
+      color: #4ade80;
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+    }
+
     .main-layout {
       display: flex;
       flex-direction: row;
@@ -64,6 +97,7 @@
       align-items: flex-start;
       gap: 20px;
       width: 100%;
+      margin-top: 10px;
     }
 
     h1.exo-title {
@@ -220,7 +254,7 @@
       object-fit: cover;
     }
 
-    /* 🎯 拍貼框座標 (再往下 0.05cm + 間距再縮 0.02cm 微調) */
+    /* 🎯 拍貼框座標與尺寸 */
     #photo-strip {
       position: relative;
       width: 240px;
@@ -257,7 +291,6 @@
       object-fit: cover !important;
     }
 
-    /* 🎯 最新精算 Y 軸座標 (起始 32px，間隔 5.8px) */
     .photo-frame:nth-child(1) { top: 32px; }
     .photo-frame:nth-child(2) { top: 178.8px; }
     .photo-frame:nth-child(3) { top: 325.6px; }
@@ -281,6 +314,16 @@
       cursor: pointer;
     }
 
+    /* 隱藏的 YouTube 播放器容器 */
+    #youtube-player-container {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     @media (max-width: 650px) {
       .main-layout {
         flex-direction: column;
@@ -293,11 +336,25 @@
       .controls-panel {
         width: 100%;
       }
+      .music-toggle-btn {
+        top: 10px;
+        right: 10px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- 🎵 右上角音樂按鈕 -->
+    <button id="music-btn" class="music-toggle-btn">
+      <span id="music-icon">🎵</span> <span id="music-text">BGM</span>
+    </button>
+    
+    <!-- 背景隱藏的 YouTube 歌單播放器 -->
+    <div id="youtube-player-container">
+      <div id="yt-player"></div>
+    </div>
+
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
     
     <div class="main-layout">
@@ -346,6 +403,8 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- 載入 YouTube 官方 API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="script.js"></script>
 </body>
 </html>
