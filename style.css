@@ -1,7 +1,7 @@
 /* =========================================================
-   1. 完整重置與防跑版星空背景
+   1. 絕對防跑版重置 (全域鎖死)
    ========================================================= */
-*, *::before, *::after {
+html, body, div, h1, p, video, canvas, img, button, label {
   box-sizing: border-box !important;
   margin: 0;
   padding: 0;
@@ -24,31 +24,30 @@ html, body {
   justify-content: center;
   align-items: center;
   padding: 15px;
-  position: relative;
-  overflow-x: hidden;
   font-family: Arial, sans-serif;
 }
 
+/* 🎯 主容器：採用 Flex 混合絕對寬度，防止崩塌 */
 .container {
   position: relative;
   z-index: 1;
-  background: rgba(23, 25, 38, 0.88);
+  background: rgba(23, 25, 38, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 20px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  max-width: 720px;
-  width: 100%;
+  width: 680px; /* 固定卡片寬度，防止尺寸變動 */
+  max-width: 95vw;
 }
 
-/* 🎯 防跑版剛性 Grid 佈局 */
 .main-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 240px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
-  align-items: start;
   width: 100%;
 }
 
@@ -57,7 +56,7 @@ h1.exo-title {
   text-align: center;
   font-family: 'Orbitron', Impact, sans-serif !important;
   font-weight: 800;
-  font-size: 21px;
+  font-size: 20px;
   letter-spacing: 2px;
   margin-bottom: 15px;
   color: #ffffff;
@@ -68,7 +67,8 @@ h1.exo-title {
 }
 
 .controls-panel {
-  width: 100%;
+  flex: 1;
+  min-width: 0; /* 防止子元素撐開尺寸 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -78,13 +78,14 @@ h1.exo-title {
 
 .preview-panel {
   width: 240px;
+  flex-shrink: 0; /* 鎖死拍貼框寬度 */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 /* =========================================================
-   2. 相機與控制區按鈕
+   2. 相機與控制區
    ========================================================= */
 .camera-container {
   position: relative;
@@ -107,7 +108,7 @@ h1.exo-title {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 80px;
+  font-size: 70px;
   font-weight: bold;
   color: #fff;
   text-shadow: 0 0 20px rgba(0,0,0,0.8);
@@ -124,7 +125,7 @@ h1.exo-title {
   position: relative;
   z-index: 100;
   flex: 1;
-  padding: 12px 10px;
+  padding: 12px 8px;
   border: 1px solid rgba(56, 189, 248, 0.5);
   border-radius: 10px;
   font-weight: bold;
@@ -206,7 +207,7 @@ h1.exo-title {
 }
 
 /* =========================================================
-   3. 🎯 拍貼框圖層 (往下 0.1cm: +3px, 往左 0.05cm: left 18.5px)
+   3. 🎯 拍貼框圖層 (微調後座標：top: 29px, left: 18.5px)
    ========================================================= */
 #photo-strip {
   position: relative;
@@ -225,7 +226,6 @@ h1.exo-title {
   z-index: 1;
 }
 
-/* 🎯 往左移動 0.05cm：left 從 20px 調整為 18.5px */
 .photo-frame {
   position: absolute;
   left: 18.5px;
@@ -246,12 +246,12 @@ h1.exo-title {
 }
 
 /* ---------------------------------------------------------
-   🎯 精密 Y 軸座標 (整體往下移 3px ➔ 第一張 top: 29px，間距 7px)
+   🎯 Y 軸座標 (第一張 top: 29px，間距 7px)
    --------------------------------------------------------- */
 .photo-frame:nth-child(1) { top: 29px; }
-.photo-frame:nth-child(2) { top: 174px; } /* 29 + 138 + 7 */
-.photo-frame:nth-child(3) { top: 319px; } /* 174 + 138 + 7 */
-.photo-frame:nth-child(4) { top: 464px; } /* 319 + 138 + 7 */
+.photo-frame:nth-child(2) { top: 174px; }
+.photo-frame:nth-child(3) { top: 319px; }
+.photo-frame:nth-child(4) { top: 464px; }
 
 #frame-overlay {
   position: absolute;
@@ -271,15 +271,17 @@ h1.exo-title {
   cursor: pointer;
 }
 
-@media (max-width: 600px) {
+/* 📱 針對小螢幕手機的自適應縮放（垂直單欄） */
+@media (max-width: 650px) {
   .main-layout {
-    grid-template-columns: 1fr;
-    justify-items: center;
+    flex-direction: column;
+    align-items: center;
   }
-  .container { padding: 12px; }
-  .controls-panel { max-width: 100%; }
-  #photo-strip {
-    transform: scale(0.92);
-    transform-origin: top center;
+  .container {
+    width: 100%;
+    padding: 12px;
+  }
+  .controls-panel {
+    width: 100%;
   }
 }
