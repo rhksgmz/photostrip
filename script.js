@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（三格已放大 1.25 倍並極致縮短間隔）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（4格維持原樣，3格放大1.2倍並設定0.3公分間隔）
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     3: {
       positions: [
-        { left: 6, top: 25, width: 228, height: 215 },   // 頂部熊頭框
-        { left: 10, top: 245, width: 220, height: 220 }, // 中間圓形框
-        { left: 5, top: 470, width: 230, height: 225 }   // 底部造型框
+        { left: 4, top: 20, width: 232, height: 220 },   // 第一格
+        { left: 4, top: 251, width: 232, height: 220 },  // 第二格 (間隔 0.3cm = 11px)
+        { left: 4, top: 482, width: 232, height: 220 }   // 第三格 (間隔 0.3cm = 11px)
       ]
     }
   };
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initCamera();
 
-  // 🎯 初始化時建立 4 格預設 DOM，確保不遺失
+  // 🎯 初始化時重建 DOM，確保 4 格與 3 格切換順暢且不丟失
   function rebuildPhotoLayer(slots) {
     photoLayer.innerHTML = '';
     for (let i = 0; i < slots; i++) {
@@ -342,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (e) {}
 
-    // 確保當前格數 DOM 完整
     rebuildPhotoLayer(currentSlots);
 
     canvases.forEach((c, idx) => {
