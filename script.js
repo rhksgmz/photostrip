@@ -1,5 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
+  // 🐾 像素風隨機 EXO 官方卡通小精靈設定（依圖片精準對應）
+  // ==========================================
+  const petsData = [
+    {
+      name: "suho",
+      icon: "🐰", // 左上：Suho (兔子)
+      quotes: ["EXO-L相愛吧", "我是兔子公主", "練習舞蹈中"]
+    },
+    {
+      name: "chanyeol",
+      icon: "🐶", // 右上：Chanyeol (粉紅連帽精靈)
+      quotes: ["聽不懂", "不安捏", "蛤?", "高雄我愛你們"]
+    },
+    {
+      name: "d.o.",
+      icon: "🐧", // 左下：D.O. (圓滾滾企鵝)
+      quotes: ["現在不是你們應該笑的時候", "要身體健康", "你們吃飽了嗎"]
+    },
+    {
+      name: "kai",
+      icon: "🐻", // 中下：Kai (小熊)
+      quotes: ["Rover Rover Rover", "好想脫襪子", "Yaho~"]
+    },
+    {
+      name: "sehun",
+      icon: "🐥", // 右下：Sehun (小黃雞)
+      quotes: ["(思考中...)", "喵喵喵", "高雄 淘汰!"]
+    }
+  ];
+
+  // 隨機挑選一位成員
+  const randomPet = petsData[Math.floor(Math.random() * petsData.length)];
+  const petAvatarEl = document.getElementById('pet-avatar');
+  const petBubbleEl = document.getElementById('pet-bubble');
+  const desktopPetEl = document.getElementById('desktop-pet');
+
+  if (petAvatarEl && petBubbleEl && desktopPetEl) {
+    petAvatarEl.innerText = randomPet.icon;
+    petBubbleEl.innerText = randomPet.quotes[0];
+
+    // 點擊小寵物時隨機切換該成員的語錄
+    desktopPetEl.addEventListener('click', () => {
+      const randomQuote = randomPet.quotes[Math.floor(Math.random() * randomPet.quotes.length)];
+      petBubbleEl.innerText = randomQuote;
+
+      desktopPetEl.style.transform = 'scale(1.15)';
+      setTimeout(() => {
+        desktopPetEl.style.transform = 'scale(1)';
+      }, 200);
+    });
+  }
+
+  // ==========================================
   // 🎵 YouTube BGM 背景音樂設定
   // ==========================================
   const musicBtn = document.getElementById('music-btn');
