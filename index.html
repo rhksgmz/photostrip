@@ -187,21 +187,15 @@
       transform: scaleX(1);
     }
 
-    /* 🎯 相機畫面上即時顯示挖孔剪影框容器 */
-    #camera-guides-layer {
+    /* 🎯 攝影機畫面上的即時相框圖樣預覽疊加層 */
+    #camera-frame-overlay {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
+      object-fit: contain;
+      opacity: 0.65;
       pointer-events: none;
       z-index: 45;
-    }
-
-    .camera-guide-box {
-      position: absolute;
-      border: 2px dashed rgba(56, 189, 248, 0.8);
-      background: rgba(56, 189, 248, 0.12);
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
     #flash-effect {
@@ -484,8 +478,8 @@
       <div class="controls-panel">
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
-          <!-- 🎯 攝影機畫面上的即時挖孔引導框 -->
-          <div id="camera-guides-layer"></div>
+          <!-- 🎯 攝影機畫面上的即時相框圖樣預覽 -->
+          <img id="camera-frame-overlay" src="frame_warm.png" alt="相框圖樣預覽">
           <div id="flash-effect"></div>
           <div id="countdown-overlay"></div>
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>

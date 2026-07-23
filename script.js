@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoStrip = document.getElementById('photo-strip');
   const photoLayer = document.querySelector('.photo-layer');
   const frameOverlay = document.getElementById('frame-overlay');
-  const cameraGuidesLayer = document.getElementById('camera-guides-layer');
+  const cameraFrameOverlay = document.getElementById('camera-frame-overlay'); // 🎯 攝影機即時相框圖樣預覽
   const finalResultImg = document.getElementById('final-result-img');
   const frameOptions = document.querySelectorAll('.frame-option');
 
@@ -117,29 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas3'),
     document.getElementById('canvas4')
   ];
-
-  // 🎯 更新攝影機即時引導框（根據拍貼機內的 240x720 比例等比對應到攝影機畫面）
-  function updateCameraGuides(slots) {
-    if (!cameraGuidesLayer) return;
-    cameraGuidesLayer.innerHTML = '';
-    
-    PHOTO_POSITIONS.forEach((pos, idx) => {
-      // 拍貼機寬高為 240 x 720，將其百分比轉換對應至相機視窗
-      const leftPercent = (pos.left / 240) * 100;
-      const topPercent = (pos.top / 720) * 100;
-      const widthPercent = (pos.width / 240) * 100;
-      const heightPercent = (pos.height / 720) * 100;
-
-      const guideBox = document.createElement('div');
-      guideBox.className = 'camera-guide-box';
-      guideBox.style.left = `${leftPercent}%`;
-      guideBox.style.top = `${topPercent}%`;
-      guideBox.style.width = `${widthPercent}%`;
-      guideBox.style.height = `${heightPercent}%`;
-      guideBox.innerHTML = `<span style="position:absolute; top:2px; left:4px; font-size:10px; color:#38bdf8; font-weight:bold; text-shadow:0 0 3px #000;">#${idx + 1}</span>`;
-      cameraGuidesLayer.appendChild(guideBox);
-    });
-  }
 
   // 3. 相機設定與鏡像切換
   function initCamera() {
@@ -208,11 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= slots; i++) {
       canvases.push(document.getElementById(`canvas${i}`));
     }
-    updateCameraGuides(slots);
   }
-
-  // 初始化預設引導框
-  updateCameraGuides(4);
 
   // 🎯 相框切換事件
   let hasShot = false;
@@ -237,6 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
+      if (cameraFrameOverlay) {
+        cameraFrameOverlay.src = `${selectedFrame}.png`; // 🎯 同步更新相機畫面上的即時相框圖樣
+      }
     });
   });
 
