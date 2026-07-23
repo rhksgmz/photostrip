@@ -414,7 +414,7 @@
       }
     }
 
-    /* 🐾 像素風小寵物樣式（使用像素字體） */
+    /* 🐾 完美無框線的純粹像素風小精靈樣式 */
     .desktop-pet {
       position: fixed;
       bottom: 20px;
@@ -423,30 +423,26 @@
       cursor: pointer;
       display: flex;
       align-items: flex-end;
-      gap: 8px;
+      gap: 10px;
       animation: petFloat 3s ease-in-out infinite;
       user-select: none;
     }
 
     .pet-avatar {
-      width: 65px;
-      height: 65px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 2px solid #38bdf8;
-      border-radius: 12px;
+      width: 75px;
+      height: 75px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 5px 20px rgba(56, 189, 248, 0.5);
       transition: transform 0.2s ease;
-      overflow: hidden;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
     }
 
     .pet-avatar img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      image-rendering: pixelated;
+      image-rendering: pixelated; /* 確保像素風格銳利不模糊 */
     }
 
     .desktop-pet:hover .pet-avatar {
@@ -454,12 +450,12 @@
     }
 
     .pet-bubble {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid #38bdf8;
       color: #38bdf8;
       padding: 8px 12px;
       border-radius: 8px;
-      font-family: 'Press Start 2P', monospace; /* 🎯 強制使用像素字體 */
+      font-family: 'Press Start 2P', monospace; /* 像素風字體 */
       font-size: 9px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
       white-space: nowrap;
@@ -501,8 +497,8 @@
         left: 10px;
       }
       .pet-avatar {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
       }
       .pet-bubble {
         font-size: 7px;
@@ -584,7 +580,7 @@
     </div>
   </div>
 
-  <!-- 🐾 像素風隨機網頁小寵物 -->
+  <!-- 🐾 無框線純粹像素風小精靈 -->
   <div id="desktop-pet" class="desktop-pet" title="點擊跟精靈對話！">
     <div id="pet-bubble" class="pet-bubble">WE ARE ONE</div>
     <div id="pet-avatar" class="pet-avatar"></div>
