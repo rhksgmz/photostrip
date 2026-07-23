@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoStrip = document.getElementById('photo-strip');
   const photoLayer = document.querySelector('.photo-layer');
   const frameOverlay = document.getElementById('frame-overlay');
+  const cameraFrameOverlay = document.getElementById('camera-frame-overlay'); // 🎯 預覽引導框
   const finalResultImg = document.getElementById('final-result-img');
   const frameOptions = document.querySelectorAll('.frame-option');
 
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas4')
   ];
 
-  // 3. 相機設定與翻轉
+  // 3. 相機設定與鏡像切換（前鏡頭鏡像、外鏡頭正常不相反）
   function initCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert("您的瀏覽器不支援相機功能！");
@@ -160,12 +161,28 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(stream => { 
       webcam.srcObject = stream;
       webcam.play().catch(e => console.log(e));
+
+      // 🎯 動態調整鏡像：前鏡頭鏡像翻轉，外鏡頭維持正常方向
+      if (currentFacingMode === 'user') {
+        webcam.classList.remove('rear-camera');
+        webcam.classList.add('front-camera');
+      } else {
+        webcam.classList.remove('front-camera');
+        webcam.classList.add('rear-camera');
+      }
     })
     .catch(err => {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => { 
           webcam.srcObject = stream;
           webcam.play().catch(e => console.log(e));
+          if (currentFacingMode === 'user') {
+            webcam.classList.remove('rear-camera');
+            webcam.classList.add('front-camera');
+          } else {
+            webcam.classList.remove('front-camera');
+            webcam.classList.add('rear-camera');
+          }
         })
         .catch(e => {
           alert("無法開啟相機，請確認是否授權相機權限或使用 HTTPS 連線！");
@@ -216,6 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
+      if (cameraFrameOverlay) {
+        cameraFrameOverlay.src = `${selectedFrame}.png`; // 🎯 同步更新相機預覽引導框
+      }
     });
   });
 
@@ -239,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ctx.save();
+    // 🎯 僅前鏡頭 ('user') 進行左右反轉，外鏡頭 ('environment') 保持正常方向
     if (isLiveVideo && activeFacing === 'user') {
       ctx.translate(targetWidth, 0);
       ctx.scale(-1, 1);
