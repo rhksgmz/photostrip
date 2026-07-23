@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoStrip = document.getElementById('photo-strip');
   const photoLayer = document.querySelector('.photo-layer');
   const frameOverlay = document.getElementById('frame-overlay');
-  const cameraFrameOverlay = document.getElementById('camera-frame-overlay'); // 🎯 攝影機即時相框圖樣預覽
+  const cameraContainer = document.querySelector('.camera-container');
   const finalResultImg = document.getElementById('final-result-img');
   const frameOptions = document.querySelectorAll('.frame-option');
 
@@ -117,6 +117,41 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas3'),
     document.getElementById('canvas4')
   ];
+
+  // 🎯 動態在相機預覽畫面上建立對應挖孔的指引框
+  let cameraGuidesLayer = document.getElementById('camera-guides-layer');
+  if (!cameraGuidesLayer) {
+    cameraGuidesLayer = document.createElement('div');
+    cameraGuidesLayer.id = 'camera-guides-layer';
+    cameraGuidesLayer.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:45;';
+    cameraContainer.appendChild(cameraGuidesLayer);
+  }
+
+  function updateCameraGuides(slots) {
+    cameraGuidesLayer.innerHTML = '';
+    PHOTO_POSITIONS.forEach((pos, idx) => {
+      // 拍貼機總版面為 240 x 720，將挖孔座標等比換算成相機畫面的百分比
+      const leftPct = (pos.left / 240) * 100;
+      const topPct = (pos.top / 720) * 100;
+      const widthPct = (pos.width / 240) * 100;
+      const heightPct = (pos.height / 720) * 100;
+
+      const guideBox = document.createElement('div');
+      guideBox.style.cssText = `
+        position: absolute;
+        left: ${leftPct}%;
+        top: ${topPct}%;
+        width: ${widthPct}%;
+        height: ${heightPct}%;
+        border: 2px dashed rgba(56, 189, 248, 0.85);
+        background: rgba(56, 189, 248, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      `;
+      guideBox.innerHTML = `<span style="position:absolute; top:3px; left:6px; font-size:10px; color:#38bdf8; font-weight:bold; text-shadow:0 0 3px #000;">#${idx + 1}</span>`;
+      cameraGuidesLayer.appendChild(guideBox);
+    });
+  }
 
   // 3. 相機設定與鏡像切換
   function initCamera() {
@@ -185,7 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= slots; i++) {
       canvases.push(document.getElementById(`canvas${i}`));
     }
+    updateCameraGuides(slots);
   }
+
+  // 初始化預設 4 格引導框
+  updateCameraGuides(4);
 
   // 🎯 相框切換事件
   let hasShot = false;
@@ -210,9 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
-      if (cameraFrameOverlay) {
-        cameraFrameOverlay.src = `${selectedFrame}.png`; // 🎯 同步更新相機畫面上的即時相框圖樣
-      }
     });
   });
 
