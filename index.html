@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
-  <!-- 導入像素風字體 -->
+  <!-- 導入像素風字體與微軟正黑體支援 -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
   <style>
@@ -414,7 +414,7 @@
       }
     }
 
-    /* 🐾 完美無框線的純粹像素風小精靈樣式 */
+    /* 🐾 無框線小精靈與專屬黑體對話框樣式 */
     .desktop-pet {
       position: fixed;
       bottom: 20px;
@@ -442,7 +442,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      image-rendering: pixelated; /* 確保像素風格銳利不模糊 */
+      image-rendering: pixelated;
     }
 
     .desktop-pet:hover .pet-avatar {
@@ -450,16 +450,16 @@
     }
 
     .pet-bubble {
-      background: rgba(15, 23, 42, 0.92);
-      border: 1px solid #38bdf8;
-      color: #38bdf8;
-      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 14px;
       border-radius: 8px;
-      font-family: 'Press Start 2P', monospace; /* 像素風字體 */
-      font-size: 9px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      font-family: 'Microsoft JhengHei', 'Heiti TC', sans-serif; /* 🎯 中文字使用黑體 */
+      font-weight: 700;
+      font-size: 11px;
       white-space: nowrap;
       line-height: 1.5;
+      border: 1.5px solid;
+      transition: all 0.3s ease;
     }
 
     @keyframes petFloat {
@@ -501,7 +501,7 @@
         height: 60px;
       }
       .pet-bubble {
-        font-size: 7px;
+        font-size: 10px;
         padding: 6px 10px;
       }
     }
@@ -580,7 +580,7 @@
     </div>
   </div>
 
-  <!-- 🐾 無框線純粹像素風小精靈 -->
+  <!-- 🐾 像素風隨機網頁小寵物 -->
   <div id="desktop-pet" class="desktop-pet" title="點擊跟精靈對話！">
     <div id="pet-bubble" class="pet-bubble">WE ARE ONE</div>
     <div id="pet-avatar" class="pet-avatar"></div>

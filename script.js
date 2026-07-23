@@ -1,36 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
-  // 🐾 5位 EXO 官方卡通小精靈設定 (檔名格式：pets_成員名.png)
+  // 🐾 5位 EXO 小精靈專屬色與台詞設定 (台詞 5 秒切換)
   // ==========================================
   const petsData = [
     {
       name: "suho",
-      imgSrc: "pets_suho.png", // 左上 Suho 兔子
+      imgSrc: "pets_suho.png",
       fallbackEmoji: "🐰",
+      color: "#ff8da1", // 粉紅色
+      glow: "rgba(255, 141, 161, 0.8)",
       quotes: ["EXO-L相愛吧", "我是兔子公主", "練習舞蹈中"]
     },
     {
       name: "chanyeol",
-      imgSrc: "pets_chanyeol.png", // 右上 Chanyeol
+      imgSrc: "pets_chanyeol.png",
       fallbackEmoji: "🐶",
+      color: "#ff1493", // 桃紅色
+      glow: "rgba(255, 20, 147, 0.9)",
       quotes: ["聽不懂", "不安捏", "蛤?", "高雄我愛你們"]
     },
     {
       name: "do",
-      imgSrc: "pets_do.png", // 左下 D.O. 企鵝
+      imgSrc: "pets_do.png",
       fallbackEmoji: "🐧",
+      color: "#ffffff", // 白色
+      glow: "rgba(255, 255, 255, 0.9)",
       quotes: ["現在不是你們應該笑的時候", "要身體健康", "你們吃飽了嗎"]
     },
     {
       name: "kai",
-      imgSrc: "pets_kai.png", // 中下 Kai 熊
+      imgSrc: "pets_kai.png",
       fallbackEmoji: "🐻",
+      color: "#4ade80", // 綠色
+      glow: "rgba(74, 222, 128, 0.9)",
       quotes: ["Rover Rover Rover", "好想脫襪子", "Yaho~"]
     },
     {
       name: "sehun",
-      imgSrc: "pets_sehun.png", // 右下 Sehun 小雞
+      imgSrc: "pets_sehun.png",
       fallbackEmoji: "🐥",
+      color: "#ff9100", // 亮橘色
+      glow: "rgba(255, 145, 0, 0.9)",
       quotes: ["(思考中...)", "喵喵喵", "高雄 淘汰!"]
     }
   ];
@@ -45,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (desktopPetEl && petBubbleEl && petAvatarEl) {
     petAvatarEl.innerHTML = `<img src="${randomPet.imgSrc}" alt="${randomPet.name}" onerror="this.onerror=null; this.parentNode.innerText='${randomPet.fallbackEmoji}';">`;
     petBubbleEl.innerText = randomPet.quotes[0];
+
+    // 套用該成員專屬顏色與光暈
+    petBubbleEl.style.color = randomPet.color;
+    petBubbleEl.style.borderColor = randomPet.color;
+    petBubbleEl.style.textShadow = `0 0 8px ${randomPet.glow}`;
+    petBubbleEl.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.6), 0 0 12px ${randomPet.glow}`;
 
     let quoteIndex = 0;
     // 每隔 5 秒自動切換台詞
