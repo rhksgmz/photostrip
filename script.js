@@ -1,36 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
-  // 🐾 5位 EXO 官方卡通小精靈（已完美去背、不破圖、5秒自動換台詞）
+  // 🐾 5位 EXO 官方卡通小精靈設定 (隨機重整、台詞 5 秒切換)
   // ==========================================
   const petsData = [
     {
       name: "suho",
-      imgSrc: "pets/suho.png", 
-      fallbackEmoji: "🐰", // 左上 Suho 兔子
+      imgSrc: "pets/suho.png", // 左上 Suho 兔子
       quotes: ["EXO-L相愛吧", "我是兔子公主", "練習舞蹈中"]
     },
     {
       name: "chanyeol",
-      imgSrc: "pets/chanyeol.png",
-      fallbackEmoji: "🐶", // 右上 Chanyeol
+      imgSrc: "pets/chanyeol.png", // 右上 Chanyeol
       quotes: ["聽不懂", "不安捏", "蛤?", "高雄我愛你們"]
     },
     {
       name: "do",
-      imgSrc: "pets/do.png",
-      fallbackEmoji: "🐧", // 左下 D.O. 企鵝
+      imgSrc: "pets/do.png", // 左下 D.O. 企鵝
       quotes: ["現在不是你們應該笑的時候", "要身體健康", "你們吃飽了嗎"]
     },
     {
       name: "kai",
-      imgSrc: "pets/kai.png",
-      fallbackEmoji: "🐻", // 中下 Kai 熊
+      imgSrc: "pets/kai.png", // 中下 Kai 熊
       quotes: ["Rover Rover Rover", "好想脫襪子", "Yaho~"]
     },
     {
       name: "sehun",
-      imgSrc: "pets/sehun.png",
-      fallbackEmoji: "🐥", // 右下 Sehun 小雞
+      imgSrc: "pets/sehun.png", // 右下 Sehun 小雞
       quotes: ["(思考中...)", "喵喵喵", "高雄 淘汰!"]
     }
   ];
@@ -43,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const petAvatarEl = document.getElementById('pet-avatar');
 
   if (desktopPetEl && petBubbleEl && petAvatarEl) {
-    petAvatarEl.innerHTML = `<img src="${randomPet.imgSrc}" alt="${randomPet.name}" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" onerror="this.onerror=null; this.parentNode.innerText='${randomPet.fallbackEmoji}';">`;
+    petAvatarEl.innerHTML = `<img src="${randomPet.imgSrc}" alt="${randomPet.name}">`;
     petBubbleEl.innerText = randomPet.quotes[0];
 
     let quoteIndex = 0;

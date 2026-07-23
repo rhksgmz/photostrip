@@ -414,7 +414,7 @@
       }
     }
 
-    /* 🐾 像素風小寵物樣式 */
+    /* 🐾 像素風小寵物樣式（使用像素字體） */
     .desktop-pet {
       position: fixed;
       bottom: 20px;
@@ -429,17 +429,23 @@
     }
 
     .pet-avatar {
-      width: 60px;
-      height: 60px;
+      width: 65px;
+      height: 65px;
       background: rgba(15, 23, 42, 0.95);
       border: 2px solid #38bdf8;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
       box-shadow: 0 5px 20px rgba(56, 189, 248, 0.5);
       transition: transform 0.2s ease;
+      overflow: hidden;
+    }
+
+    .pet-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       image-rendering: pixelated;
     }
 
@@ -448,17 +454,16 @@
     }
 
     .pet-bubble {
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid #38bdf8;
       color: #38bdf8;
-      padding: 6px 12px;
+      padding: 8px 12px;
       border-radius: 8px;
-      font-family: 'Press Start 2P', monospace;
+      font-family: 'Press Start 2P', monospace; /* 🎯 強制使用像素字體 */
       font-size: 9px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
       white-space: nowrap;
-      transition: all 0.3s ease;
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
     @keyframes petFloat {
@@ -498,10 +503,10 @@
       .pet-avatar {
         width: 50px;
         height: 50px;
-        font-size: 26px;
       }
       .pet-bubble {
-        font-size: 8px;
+        font-size: 7px;
+        padding: 6px 10px;
       }
     }
   </style>
@@ -581,8 +586,8 @@
 
   <!-- 🐾 像素風隨機網頁小寵物 -->
   <div id="desktop-pet" class="desktop-pet" title="點擊跟精靈對話！">
-    <div id="pet-bubble" class="pet-bubble">WE ARE ONE!</div>
-    <div id="pet-avatar" class="pet-avatar">🐰</div>
+    <div id="pet-bubble" class="pet-bubble">WE ARE ONE</div>
+    <div id="pet-avatar" class="pet-avatar"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
