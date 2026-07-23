@@ -76,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoStrip = document.getElementById('photo-strip');
   const photoLayer = document.querySelector('.photo-layer');
   const frameOverlay = document.getElementById('frame-overlay');
-  const cameraFrameOverlay = document.getElementById('camera-frame-overlay'); // 🎯 攝影機即時相框圖樣預覽
   const finalResultImg = document.getElementById('final-result-img');
   const frameOptions = document.querySelectorAll('.frame-option');
 
@@ -210,9 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
-      if (cameraFrameOverlay) {
-        cameraFrameOverlay.src = `${selectedFrame}.png`; // 🎯 同步更新相機畫面上的即時相框圖樣
-      }
     });
   });
 
