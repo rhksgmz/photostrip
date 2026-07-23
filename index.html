@@ -16,9 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- 導入像素風字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
   <style>
     html, body, div, h1, p, video, canvas, img, button, label {
@@ -110,7 +109,7 @@
       font-weight: 800;
       font-size: 20px;
       letter-spacing: 2px;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
       color: #ffffff;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 
@@ -118,18 +117,32 @@
                   0 0 30px rgba(56, 189, 248, 0.5);
     }
 
-    .stats-panel {
-      display: flex;
-      justify-content: center;
+    /* 🎯 像素風跑馬燈樣式 */
+    .marquee-container {
       width: 100%;
-      background: rgba(15, 23, 42, 0.6);
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.7);
       border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 8px;
       border-radius: 8px;
+      padding: 6px 0;
       margin-bottom: 12px;
-      font-size: 13px;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .marquee-text {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marqueeScroll 12s linear infinite;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
       color: #38bdf8;
-      font-weight: bold;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+      letter-spacing: 2px;
+    }
+
+    @keyframes marqueeScroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
     }
 
     .controls-panel {
@@ -164,7 +177,6 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scaleX(-1);
     }
 
     #webcam.front-camera {
@@ -175,15 +187,21 @@
       transform: scaleX(1);
     }
 
-    /* 🎯 攝影機即時相框預覽引導層 */
-    #camera-frame-overlay {
+    /* 🎯 相機畫面上即時顯示挖孔剪影框容器 */
+    #camera-guides-layer {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0.35;
       pointer-events: none;
       z-index: 45;
+    }
+
+    .camera-guide-box {
+      position: absolute;
+      border: 2px dashed rgba(56, 189, 248, 0.8);
+      background: rgba(56, 189, 248, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
     }
 
     #flash-effect {
@@ -457,16 +475,17 @@
 
     <h1 class="exo-title">EXhOrizon in Kaohsiung</h1>
 
-    <div class="stats-panel">
-      <span>📸 累積拍攝次數：<span id="total-shots">0</span> 次</span>
+    <!-- 🎯 像素風跑馬燈 -->
+    <div class="marquee-container">
+      <div class="marquee-text">★ WE ARE ONE ★ EXHORIZON IN KAOHSIUNG ★ KEEP SMILING ★ WE ARE ONE ★</div>
     </div>
     
     <div class="main-layout">
       <div class="controls-panel">
         <div class="camera-container">
           <video id="webcam" autoplay playsinline muted></video>
-          <!-- 🎯 攝影機即時相框預覽引導 -->
-          <img id="camera-frame-overlay" src="frame_warm.png" alt="相框引導">
+          <!-- 🎯 攝影機畫面上的即時挖孔引導框 -->
+          <div id="camera-guides-layer"></div>
           <div id="flash-effect"></div>
           <div id="countdown-overlay"></div>
           <button id="flip-btn" class="flip-btn" title="切換前後鏡頭">🔄</button>

@@ -1,27 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
-  // 🔴 Firebase 累積拍攝次數即時同步設定
-  // ==========================================
-  try {
-    const firebaseConfig = {
-      databaseURL: "https://exhorizon-photobooth-default-rtdb.firebaseio.com/"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const totalShotsEl = document.getElementById('total-shots');
-    db.ref('stats/totalShots').on('value', (snapshot) => {
-      const val = snapshot.val();
-      if (val !== null && totalShotsEl) {
-        totalShotsEl.innerText = val;
-      } else if (totalShotsEl) {
-        db.ref('stats/totalShots').set(128);
-      }
-    });
-  } catch (e) {
-    console.log("Firebase 略過：", e);
-  }
-
-  // ==========================================
   // 🎵 YouTube BGM 背景音樂設定
   // ==========================================
   const musicBtn = document.getElementById('music-btn');
@@ -98,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoStrip = document.getElementById('photo-strip');
   const photoLayer = document.querySelector('.photo-layer');
   const frameOverlay = document.getElementById('frame-overlay');
-  const cameraFrameOverlay = document.getElementById('camera-frame-overlay'); // 🎯 預覽引導框
+  const cameraGuidesLayer = document.getElementById('camera-guides-layer');
   const finalResultImg = document.getElementById('final-result-img');
   const frameOptions = document.querySelectorAll('.frame-option');
 
@@ -112,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioCtx = null;
   let isRecordingActive = false;
 
-  // 🎯 四格與三格 PNG 相框的挖孔座標與大小（4格維持原樣，3格間隔設為 0.35cm ≒ 13px）
+  // 🎯 四格與三格 PNG 相框的挖孔座標與大小
   const FRAME_CONFIGS = {
     4: {
       positions: [
@@ -140,7 +118,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas4')
   ];
 
-  // 3. 相機設定與鏡像切換（前鏡頭鏡像、外鏡頭正常不相反）
+  // 🎯 更新攝影機即時引導框（根據拍貼機內的 240x720 比例等比對應到攝影機畫面）
+  function updateCameraGuides(slots) {
+    if (!cameraGuidesLayer) return;
+    cameraGuidesLayer.innerHTML = '';
+    
+    PHOTO_POSITIONS.forEach((pos, idx) => {
+      // 拍貼機寬高為 240 x 720，將其百分比轉換對應至相機視窗
+      const leftPercent = (pos.left / 240) * 100;
+      const topPercent = (pos.top / 720) * 100;
+      const widthPercent = (pos.width / 240) * 100;
+      const heightPercent = (pos.height / 720) * 100;
+
+      const guideBox = document.createElement('div');
+      guideBox.className = 'camera-guide-box';
+      guideBox.style.left = `${leftPercent}%`;
+      guideBox.style.top = `${topPercent}%`;
+      guideBox.style.width = `${widthPercent}%`;
+      guideBox.style.height = `${heightPercent}%`;
+      guideBox.innerHTML = `<span style="position:absolute; top:2px; left:4px; font-size:10px; color:#38bdf8; font-weight:bold; text-shadow:0 0 3px #000;">#${idx + 1}</span>`;
+      cameraGuidesLayer.appendChild(guideBox);
+    });
+  }
+
+  // 3. 相機設定與鏡像切換
   function initCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert("您的瀏覽器不支援相機功能！");
@@ -162,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
       webcam.srcObject = stream;
       webcam.play().catch(e => console.log(e));
 
-      // 🎯 動態調整鏡像：前鏡頭鏡像翻轉，外鏡頭維持正常方向
       if (currentFacingMode === 'user') {
         webcam.classList.remove('rear-camera');
         webcam.classList.add('front-camera');
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initCamera();
 
-  // 🎯 初始化時重建 DOM，確保 4 格與 3 格切換順暢且不丟失
+  // 🎯 初始化時重建 DOM
   function rebuildPhotoLayer(slots) {
     photoLayer.innerHTML = '';
     for (let i = 0; i < slots; i++) {
@@ -208,7 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= slots; i++) {
       canvases.push(document.getElementById(`canvas${i}`));
     }
+    updateCameraGuides(slots);
   }
+
+  // 初始化預設引導框
+  updateCameraGuides(4);
 
   // 🎯 相框切換事件
   let hasShot = false;
@@ -233,9 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startBtn.innerText = `2. 開始連拍 (${slots}張)`;
       frameOverlay.src = `${selectedFrame}.png`;
-      if (cameraFrameOverlay) {
-        cameraFrameOverlay.src = `${selectedFrame}.png`; // 🎯 同步更新相機預覽引導框
-      }
     });
   });
 
@@ -259,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ctx.save();
-    // 🎯 僅前鏡頭 ('user') 進行左右反轉，外鏡頭 ('environment') 保持正常方向
     if (isLiveVideo && activeFacing === 'user') {
       ctx.translate(targetWidth, 0);
       ctx.scale(-1, 1);
@@ -355,13 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
     finalResultImg.classList.remove('printing-animation');
     hasShot = false;
     recordedChunks = [];
-
-    // 🎯 點擊按鈕的瞬間立即計入總拍攝次數
-    try {
-      firebase.database().ref('stats/totalShots').transaction((current) => {
-        return (current || 128) + 1;
-      });
-    } catch (e) {}
 
     rebuildPhotoLayer(currentSlots);
 
